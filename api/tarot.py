@@ -1,10 +1,10 @@
-# File: api/tarot_auth.py
+# api/tarot.py
 
 import os
 import hmac
 import json
 import random
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Optional
 from http.server import BaseHTTPRequestHandler
 
 # ---- Tarot constants ----
@@ -94,7 +94,7 @@ def _unauthorized() -> Dict[str, Any]:
     return {"error": "Unauthorized"}
 
 
-def _extract_bearer_token(authorization_value: str) -> str | None:
+def _extract_bearer_token(authorization_value: str) -> Optional[str]:
     """
     Accepts header value like:
       - "Bearer <token>"
@@ -109,6 +109,71 @@ def _extract_bearer_token(authorization_value: str) -> str | None:
     if scheme != AUTH_SCHEME or not token:
         return None
     return token
+
+
+# ---------------------------
+# Refactor target: pure logic
+# ---------------------------
+
+def draw_spread(
+    *,
+    positions: Any,
+    label: Any = None,
+    rng: Optional[random.Random] = None,
+) -> Dict[str, Any]:
+    """
+    Pure core logic:
+    - Validates inputs
+    - Builds/shuffles/cuts deck
+    - Draws cards for each position
+    - Returns payload: {"draws": ..., "meta": ...}
+
+    rng:
+      - If provided: used for deterministic tests (e.g. random.Random(123))
+      - If None: uses random.SystemRandom() (production)
+    """
+    # Validate positions
+    if not isinstance(positions, list) or len(positions) < 1:
+        raise ValueError("positions must be a non-empty array of strings")
+
+    cleaned: List[str] = []
+    for p in positions:
+        if not isinstance(p, str):
+            raise ValueError("positions must be an array of strings")
+        s = p.strip()
+        if not s:
+            raise ValueError("positions must contain non-empty strings")
+        cleaned.append(s)
+
+    if len(set(cleaned)) != len(cleaned):
+        raise ValueError("positions must be unique")
+    if len(cleaned) > MAX_POSITIONS:
+        raise ValueError(f"positions length must be <= {MAX_POSITIONS}")
+    if len(cleaned) > 78:
+        raise ValueError("positions length must be <= 78")
+
+    # Validate label
+    meta: Dict[str, str] = {}
+    if label is not None:
+        if not isinstance(label, str):
+            raise ValueError("label must be a string")
+        label_s = label.strip()
+        if len(label_s) > 200:
+            raise ValueError("label too long (max 200 chars)")
+        if label_s != "":
+            meta["label"] = label_s
+
+    # RNG
+    r = rng if rng is not None else random.SystemRandom()
+
+    # Draw pipeline
+    deck = build_deck()
+    apply_packet_flips(deck, r)
+    shuffle_deck(deck, r)
+    cut_deck(deck, r)
+    draws = draw(deck, cleaned)
+
+    return {"draws": draws, "meta": meta}
 
 
 class handler(BaseHTTPRequestHandler):
@@ -129,12 +194,11 @@ class handler(BaseHTTPRequestHandler):
         expected = os.environ.get(AUTH_ENV_VAR)
         if not expected:
             return True  # auth disabled
-
-        auth_header = self.headers.get(AUTH_HEADER, "")
-        token = _extract_bearer_token(auth_header)
+        
+        token = _extract_bearer_token(self.headers.get(AUTH_HEADER, ""))
         if token is None:
             return False
-
+        
         # Constant-time comparison
         return hmac.compare_digest(token, expected)
 
@@ -154,48 +218,17 @@ class handler(BaseHTTPRequestHandler):
             if not isinstance(body, dict):
                 return self._send_json(400, _bad_request("body must be a JSON object"))
 
-            positions = body.get("positions")
-            if not isinstance(positions, list) or len(positions) < 1:
-                return self._send_json(400, _bad_request("positions must be a non-empty array of strings"))
+            # Now thin glue: delegate to pure logic
+            try:
+                payload = draw_spread(
+                    positions=body.get("positions"),
+                    label=body.get("label"),
+                    rng=None,  # production: SystemRandom
+                )
+            except ValueError as ve:
+                return self._send_json(400, _bad_request(str(ve)))
 
-            cleaned: List[str] = []
-            for p in positions:
-                if not isinstance(p, str):
-                    return self._send_json(400, _bad_request("positions must be an array of strings"))
-                s = p.strip()
-                if not s:
-                    return self._send_json(400, _bad_request("positions must contain non-empty strings"))
-                cleaned.append(s)
-
-            if len(set(cleaned)) != len(cleaned):
-                return self._send_json(400, _bad_request("positions must be unique"))
-            if len(cleaned) > MAX_POSITIONS:
-                return self._send_json(400, _bad_request(f"positions length must be <= {MAX_POSITIONS}"))
-            if len(cleaned) > 78:
-                return self._send_json(400, _bad_request("positions length must be <= 78"))
-
-            label = body.get("label")
-            if label is not None:
-                if not isinstance(label, str):
-                    return self._send_json(400, _bad_request("label must be a string"))
-                label = label.strip()
-                if len(label) > 200:
-                    return self._send_json(400, _bad_request("label too long (max 200 chars)"))
-                if label == "":
-                    label = None
-
-            rng = random.SystemRandom()
-            deck = build_deck()
-            apply_packet_flips(deck, rng)
-            shuffle_deck(deck, rng)
-            cut_deck(deck, rng)
-            draws = draw(deck, cleaned)
-
-            meta: Dict[str, str] = {}
-            if label:
-                meta["label"] = label
-
-            return self._send_json(200, {"draws": draws, "meta": meta})
+            return self._send_json(200, payload)
 
         except Exception as e:
             return self._send_json(400, {"error": str(e)})
