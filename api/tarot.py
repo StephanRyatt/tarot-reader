@@ -1,3 +1,7 @@
+# File: api/tarot_auth.py
+
+import os
+import hmac
 import json
 import random
 from typing import List, Dict, Tuple, Any
@@ -21,6 +25,11 @@ PACKET_FLIPS_MIN = 1
 PACKET_FLIPS_MAX = 3
 PACKET_SIZE_MIN = 8
 PACKET_SIZE_MAX = 20
+
+# Auth
+AUTH_ENV_VAR = "TAROT_API_KEY"
+AUTH_HEADER = "Authorization"          # expects: "Bearer <key>"
+AUTH_SCHEME = "Bearer"
 
 Orientation = str  # "upright" | "reversed"
 Card = Tuple[str, Orientation]
@@ -81,6 +90,27 @@ def _bad_request(msg: str) -> Dict[str, Any]:
     return {"error": msg}
 
 
+def _unauthorized() -> Dict[str, Any]:
+    return {"error": "Unauthorized"}
+
+
+def _extract_bearer_token(authorization_value: str) -> str | None:
+    """
+    Accepts header value like:
+      - "Bearer <token>"
+    Returns <token> or None.
+    """
+    if not authorization_value:
+        return None
+    parts = authorization_value.split(" ", 1)
+    if len(parts) != 2:
+        return None
+    scheme, token = parts[0].strip(), parts[1].strip()
+    if scheme != AUTH_SCHEME or not token:
+        return None
+    return token
+
+
 class handler(BaseHTTPRequestHandler):
     def _send_json(self, status: int, payload: Dict[str, Any]) -> None:
         body = json.dumps(payload).encode("utf-8")
@@ -90,8 +120,29 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _check_auth(self) -> bool:
+        """
+        Auth behavior:
+        - If TAROT_API_KEY is NOT set: auth is disabled -> allow
+        - If TAROT_API_KEY is set: require Authorization: Bearer <key>
+        """
+        expected = os.environ.get(AUTH_ENV_VAR)
+        if not expected:
+            return True  # auth disabled
+
+        auth_header = self.headers.get(AUTH_HEADER, "")
+        token = _extract_bearer_token(auth_header)
+        if token is None:
+            return False
+
+        # Constant-time comparison
+        return hmac.compare_digest(token, expected)
+
     def do_POST(self):
         try:
+            if not self._check_auth():
+                return self._send_json(401, _unauthorized())
+
             length = int(self.headers.get("Content-Length", "0"))
             raw = self.rfile.read(length) if length > 0 else b"{}"
 
