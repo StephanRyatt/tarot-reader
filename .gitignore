@@ -1,7 +1,16 @@
-cat > .gitignore << 'EOF'
+# Python
 __pycache__/
 *.pyc
-.env
-.env.local
-.vercel/
+
+# Virtual environment
 .venv/
+
+# Local environment / secrets
+.env.local
+.envrc
+
+# Pytest
+.pytest_cache/
+
+# Vercel
+.vercel/
