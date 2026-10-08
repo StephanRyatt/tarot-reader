@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "tarot-reader",
+  "version": "1.0.0",
+  "description": "Draw real, randomized tarot spreads and get readings grounded in the cards actually drawn.",
+  "author": { "name": "StephanRyatt", "url": "https://github.com/StephanRyatt" },
+  "homepage": "https://github.com/StephanRyatt/tarot-reader",
+  "repository": "https://github.com/StephanRyatt/tarot-reader",
+  "keywords": ["tarot", "tarot-reading", "cards", "divination"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Tarot Reader",
+        "shortDescription": "Draw random tarot spreads and get grounded readings",
+        "longDescription": "Shuffles a full 78-card Rider-Waite deck with reversals, draws one real card per spread position, and guides the reading so it never invents cards.",
+        "developerName": "StephanRyatt",
+        "capabilities": ["Read"],
+        "category": "Lifestyle",
+        "defaultPrompt": [
+          "Do a three-card Past, Present, Future tarot reading for me.",
+          "Pull one tarot card for my day.",
+          "Do a Celtic Cross reading about my career."
+        ]
+      }
+    }
+  }
+}

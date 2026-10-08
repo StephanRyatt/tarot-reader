@@ -111,6 +111,16 @@ def _extract_bearer_token(authorization_value: str) -> Optional[str]:
     return token
 
 
+def is_authorized(authorization_value: str) -> bool:
+    expected = os.environ.get(AUTH_ENV_VAR)
+    if not expected:
+        return True
+    token = _extract_bearer_token(authorization_value or "")
+    if token is None:
+        return False
+    return hmac.compare_digest(token, expected)
+
+
 # ---------------------------
 # Refactor target: pure logic
 # ---------------------------
@@ -191,16 +201,7 @@ class handler(BaseHTTPRequestHandler):
         - If TAROT_API_KEY is NOT set: auth is disabled -> allow
         - If TAROT_API_KEY is set: require Authorization: Bearer <key>
         """
-        expected = os.environ.get(AUTH_ENV_VAR)
-        if not expected:
-            return True  # auth disabled
-        
-        token = _extract_bearer_token(self.headers.get(AUTH_HEADER, ""))
-        if token is None:
-            return False
-        
-        # Constant-time comparison
-        return hmac.compare_digest(token, expected)
+        return is_authorized(self.headers.get(AUTH_HEADER, ""))
 
     def do_POST(self):
         try:
