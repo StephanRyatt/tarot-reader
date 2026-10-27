@@ -3,7 +3,7 @@
   "mcpServers": {
     "tarot-reader": {
       "type": "streamable-http",
-      "url": "https://YOUR-PROJECT.vercel.app/mcp"
+      "url": "https://tarot-reader-omega.vercel.app/mcp"
     }
   }
 }
