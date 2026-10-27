@@ -46,14 +46,17 @@ tarot-reader/
 │  ├─ mcp.json
 │  └─ skills/tarot-reading/SKILL.md
 ├─ tests/
-│  ├─ test_logic.py
-│  ├─ test_http.py
-│  ├─ test_mcp.py
-│  ├─ test_dev_server.py
+│  ├─ conftest.py           # clean env per test, throwaway local server
+│  ├─ test_logic.py         # engine: validation, invariants, fairness
+│  ├─ test_http.py          # REST contract
+│  ├─ test_mcp.py           # MCP checks, dispatch, socket adapter
+│  ├─ test_dev_server.py    # local routing mirrors vercel.json
+│  ├─ test_consistency.py   # instructions, tool, skill and README agree
 │  └─ test_plugin_package.py
 ├─ dev_server.py
 ├─ vercel.json
-├─ requirements-dev.txt
+├─ ruff.toml / mypy.ini     # lint, format and type-check config
+├─ requirements-dev.txt     # pinned dev tools; runtime is stdlib-only
 └─ .gitignore
 ```
 
@@ -77,6 +80,7 @@ Rules:
 * `positions` must be a non-empty array of non-empty strings
 * `positions` must be unique
 * maximum positions: 30
+* each position name: maximum 100 characters (after trimming whitespace)
 * `label` is optional; maximum length: 200 characters
 
 ---
@@ -115,8 +119,9 @@ Rules:
 * `200` — JSON-RPC request result or protocol error
 * `202` — notification or client response (empty body)
 * `204` — CORS preflight (`OPTIONS`)
-* `400` — parse error, batch, or invalid request
+* `400` — parse error, batch, invalid request, or an unsupported `MCP-Protocol-Version` header
 * `401` — Unauthorized (JSON-RPC body, no `WWW-Authenticate`)
+* `403` — `Origin` header from a browser origin that is not allowed (see below)
 * `405` — `GET` / `DELETE` (`Allow: POST, OPTIONS`)
 * `413` — request body larger than 64 KiB
 * `500` — unexpected internal error
@@ -146,6 +151,16 @@ ChatGPT web custom MCP servers use Authentication = **None** and cannot send API
 
 OAuth is not implemented.
 
+### Browser origins (`/mcp` only)
+
+The MCP spec requires servers to check the `Origin` header to block DNS-rebinding attacks. `/mcp` allows:
+
+* requests with no `Origin` (server-side clients such as ChatGPT and Claude)
+* local pages on `localhost`, `127.0.0.1` or `[::1]` (MCP Inspector)
+* origins listed in `TAROT_MCP_ALLOWED_ORIGINS`, comma-separated (for example `https://app.example.com`), or any origin when it is `*`
+
+Any other `Origin` gets `403 Forbidden`.
+
 ---
 
 ## Local development setup
@@ -159,6 +174,19 @@ export TAROT_API_KEY='your-long-secret'
 ```
 
 Ensure `.env.local` is listed in `.gitignore`.
+
+---
+
+## Checks
+
+CI runs the same commands on every push and pull request:
+
+```bash
+pip install -r requirements-dev.txt
+ruff check . && ruff format --check .
+mypy
+pytest --cov=api --cov=dev_server --cov-fail-under=95
+```
 
 ---
 

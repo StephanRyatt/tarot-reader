@@ -1,4 +1,4 @@
-# File: tests/test_plugin_package.py
+"""Plugin package files and vercel.json have the shape their consumers expect."""
 
 import json
 import re

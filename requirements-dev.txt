@@ -1,2 +1,5 @@
-# Development & testing dependencies only
-pytest
+# Development and CI only. The runtime is stdlib-only (requirements.txt is empty on purpose).
+pytest==9.1.1
+pytest-cov==7.1.0
+ruff==0.17.3
+mypy==2.4.0
