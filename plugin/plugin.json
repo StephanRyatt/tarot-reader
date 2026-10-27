@@ -6,6 +6,7 @@
   "author": { "name": "StephanRyatt", "url": "https://github.com/StephanRyatt" },
   "homepage": "https://github.com/StephanRyatt/tarot-reader",
   "repository": "https://github.com/StephanRyatt/tarot-reader",
+  "license": "MIT",
   "keywords": ["tarot", "tarot-reading", "cards", "divination"],
   "extensions": {
     "com.openai": {
