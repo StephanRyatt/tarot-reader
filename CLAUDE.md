@@ -61,8 +61,9 @@ Vercel's Python runtime changes how it installs when one exists, so tool config 
 - Limits (`MAX_POSITIONS`, `MAX_POSITION_LENGTH`, `MAX_LABEL_LENGTH`) live in `api/tarot.py`; the MCP input schema
   reads them. `tests/test_consistency.py` checks the skill, instructions and README still agree.
 - `tests/conftest.py` clears the `TAROT_*` env vars before every test and provides `live_server(HandlerClass)`.
-- `plugin/mcp.json` contains a `YOUR-PROJECT` placeholder host. Do not replace it with a real host in a commit
-  unless asked. `test_plugin_package.py` only requires an `https://` URL ending in `/mcp`.
+- `plugin/mcp.json` points at the public production instance, `https://tarot-reader-omega.vercel.app/mcp`, which runs with
+  `TAROT_MCP_PUBLIC=1` behind a Vercel Firewall rate limit (60 requests/min per IP on `/mcp` and `/api/mcp`).
+  `test_plugin_package.py` only requires an `https://` URL ending in `/mcp`.
 - `vercel.json` must contain only `rewrites`; a test fails if `builds` or `functions` is added.
 - Custom GPTs retire on 11 Dec 2026 and Actions do not migrate, so avoid investing in the REST/GPT path.
 - Runtime stays dependency-free (stdlib only); `requirements.txt` is empty on purpose.

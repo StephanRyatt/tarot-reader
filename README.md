@@ -9,6 +9,18 @@ Both shuffle a full 78-card Rider-Waite deck (with packet flips, a cut, and reve
 
 ---
 
+## Try it
+
+A public instance runs at **`https://tarot-reader-omega.vercel.app/mcp`** (no key needed, rate-limited).
+
+* **Claude Code:** `claude mcp add --transport http tarot-reader https://tarot-reader-omega.vercel.app/mcp`
+* **claude.ai:** Settings → Connectors → Add custom connector, paste the URL, leave authentication off.
+* **ChatGPT:** add it as a custom MCP server with Authentication set to **None** (steps in [Connecting in ChatGPT](#connecting-in-chatgpt)).
+
+Then ask for a reading, for example "Do a three-card reading about my week."
+
+---
+
 ## What changed
 
 This repo now exposes the existing `draw_spread()` function as one MCP tool, `draw_tarot_spread`, over stateless Streamable HTTP.
@@ -300,10 +312,10 @@ Then use `https://<id>.ngrok.app/mcp`.
 
 ChatGPT web **Add custom MCP server** uses only the live `/mcp` server (instructions + tool metadata). The `plugin/` skill is for Codex/desktop marketplace packaging, not the web custom-MCP flow.
 
-1. Deploy and confirm `POST https://<project>.vercel.app/mcp` answers `initialize`.
-2. Replace `YOUR-PROJECT` in `plugin/mcp.json` with your real Vercel host.
+1. Use the public instance, or deploy your own and confirm `POST https://<project>.vercel.app/mcp` answers `initialize`.
+2. If you deploy your own, point `plugin/mcp.json` at your host instead of `https://tarot-reader-omega.vercel.app/mcp`.
 3. In ChatGPT, go to Plugins → **+** → **Add custom MCP server**.
-4. Set the URL to `https://<project>.vercel.app/mcp`, the name to "Tarot Reader", and Authentication to **None**.
+4. Set the URL to `https://tarot-reader-omega.vercel.app/mcp` (or your own host), the name to "Tarot Reader", and Authentication to **None**.
 5. Accept the risk warning, then choose **Create as a plugin**.
 6. Install it, open a new chat, type `@Tarot Reader`, and enter "Do a three-card reading".
 7. Refresh the connection on chatgpt.com/plugins after any change to tools or metadata.
@@ -315,13 +327,13 @@ To bundle the skill for ChatGPT after creating the custom MCP connection, use `@
 
 ## Codex / desktop
 
-Replace `YOUR-PROJECT` in `plugin/mcp.json` with your real Vercel host before pointing clients at that URL.
+`plugin/mcp.json` points at the public instance. If you deploy your own, change the URL there first.
 
 For a bearer token, Codex `~/.codex/config.toml` can take (check against current Codex docs):
 
 ```toml
 [mcp_servers.tarot-reader]
-url = "https://<project>.vercel.app/mcp"
+url = "https://<project>.vercel.app/mcp"  # your own deployment, if it requires a key
 bearer_token_env_var = "TAROT_API_KEY"
 ```
 
