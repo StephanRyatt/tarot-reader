@@ -68,3 +68,9 @@ def test_vercel_json():
     assert {"source": "/mcp/", "destination": "/api/mcp"} in data["rewrites"]
     assert "builds" not in data
     assert "functions" not in data
+
+
+def test_license_is_declared():
+    data = json.loads((REPO_ROOT / "plugin" / "plugin.json").read_text(encoding="utf-8"))
+    assert data["license"] == "MIT"
+    assert (REPO_ROOT / "LICENSE").read_text(encoding="utf-8").startswith("MIT License")

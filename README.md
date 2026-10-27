@@ -391,3 +391,9 @@ curl -s -X POST "https://<project>.vercel.app/mcp" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
 ```
+
+---
+
+## License
+
+[MIT](LICENSE)
