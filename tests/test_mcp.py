@@ -1,30 +1,34 @@
-# File: tests/test_mcp.py
+"""MCP server: handle_http() checks in order, JSON-RPC dispatch, and the socket adapter."""
 
+import http.client
 import json
 import random
-import threading
-from http.server import HTTPServer
+import subprocess
+import sys
 from pathlib import Path
-import http.client
 
 import pytest
 
-from api.tarot import draw_spread, MAX_POSITIONS
 from api.mcp import (
-    handle_http,
-    handler as McpHandler,
+    INPUT_SCHEMA,
     MAX_BODY_BYTES,
     SERVER_INSTRUCTIONS,
     TOOL_NAME,
+    handle_http,
 )
+from api.mcp import handler as McpHandler
+from api.tarot import MAX_LABEL_LENGTH, MAX_POSITION_LENGTH, MAX_POSITIONS, draw_spread
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+JSON = {"Content-Type": "application/json"}
 
 
-def rpc(method, params=None, id=1, include_id=True):
+def rpc(method, params=None, req_id=1, include_id=True):
     message = {"jsonrpc": "2.0", "method": method}
     if params is not None:
         message["params"] = params
     if include_id:
-        message["id"] = id
+        message["id"] = req_id
     return json.dumps(message).encode("utf-8")
 
 
@@ -39,49 +43,15 @@ def decode(resp):
     return json.loads(resp.body.decode("utf-8"))
 
 
-def _start_server() -> tuple[HTTPServer, threading.Thread, int]:
-    server = HTTPServer(("127.0.0.1", 0), McpHandler)
-    port = server.server_address[1]
-    t = threading.Thread(target=server.serve_forever, daemon=True)
-    t.start()
-    return server, t, port
+@pytest.fixture
+def server(live_server):
+    return live_server(McpHandler)
 
 
-def _stop_server(server: HTTPServer, t: threading.Thread) -> None:
-    server.shutdown()
-    server.server_close()
-    t.join(timeout=2)
+# Protocol
 
 
-def _request(
-    port: int,
-    method: str,
-    path: str = "/",
-    headers: dict | None = None,
-    body: str | bytes | None = None,
-) -> tuple[int, dict[str, str], bytes]:
-    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=2)
-    try:
-        h = headers or {}
-        b = body
-        if isinstance(b, str):
-            b = b.encode("utf-8")
-        conn.request(method, path, body=b, headers=h)
-        resp = conn.getresponse()
-        status = resp.status
-        resp_headers = {k: v for (k, v) in resp.getheaders()}
-        data = resp.read()
-        return status, resp_headers, data
-    finally:
-        conn.close()
-
-
-# -------------------------
-# Protocol tests
-# -------------------------
-
-def test_initialize_returns_server_info_and_instructions(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_initialize_returns_server_info_and_instructions():
     resp = call(rpc("initialize", {"protocolVersion": "2025-11-25"}))
     assert resp.status == 200
     assert resp.headers.get("Content-Type") == "application/json"
@@ -100,10 +70,7 @@ def test_initialize_returns_server_info_and_instructions(monkeypatch: pytest.Mon
     "version",
     ["2025-06-18", "2025-03-26", "2024-11-05"],
 )
-def test_initialize_echoes_supported_older_version(
-    monkeypatch: pytest.MonkeyPatch, version: str
-):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_initialize_echoes_supported_older_version(version: str):
     resp = call(rpc("initialize", {"protocolVersion": version}))
     assert resp.status == 200
     assert decode(resp)["result"]["protocolVersion"] == version
@@ -114,39 +81,31 @@ def test_initialize_echoes_supported_older_version(
     [
         {"protocolVersion": "1999-01-01"},
         {"protocolVersion": None},
+        ["not", "an", "object"],
         None,
     ],
 )
-def test_initialize_unknown_or_missing_version_falls_back_to_latest(
-    monkeypatch: pytest.MonkeyPatch, params
-):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
-    if params is None:
-        body = rpc("initialize")
-    else:
-        body = rpc("initialize", params)
+def test_initialize_unknown_or_missing_version_falls_back_to_latest(params):
+    body = rpc("initialize") if params is None else rpc("initialize", params)
     resp = call(body)
     assert resp.status == 200
     assert decode(resp)["result"]["protocolVersion"] == "2025-11-25"
 
 
-def test_initialized_notification_returns_202_empty(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_initialized_notification_returns_202_empty():
     body = json.dumps({"jsonrpc": "2.0", "method": "notifications/initialized"}).encode("utf-8")
     resp = call(body)
     assert resp.status == 202
     assert resp.body == b""
 
 
-def test_ping_returns_empty_result(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_ping_returns_empty_result():
     resp = call(rpc("ping"))
     assert resp.status == 200
     assert decode(resp)["result"] == {}
 
 
-def test_tools_list_single_tool_metadata(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_tools_list_single_tool_metadata():
     resp = call(rpc("tools/list"))
     assert resp.status == 200
     tools = decode(resp)["result"]["tools"]
@@ -166,8 +125,7 @@ def test_tools_list_single_tool_metadata(monkeypatch: pytest.MonkeyPatch):
     assert tool["securitySchemes"] == [{"type": "noauth"}]
 
 
-def test_tools_call_happy_path_matches_draw_spread(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_tools_call_happy_path_matches_draw_spread():
     positions = ["Past", "Present", "Future"]
     expected = draw_spread(positions=positions, label="3-card", rng=random.Random(7))
     resp = call(
@@ -196,8 +154,7 @@ def test_tools_call_happy_path_matches_draw_spread(monkeypatch: pytest.MonkeyPat
     assert past_idx < present_idx < future_idx
 
 
-def test_tools_call_without_label_has_empty_meta(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_tools_call_without_label_has_empty_meta():
     resp = call(
         rpc("tools/call", {"name": TOOL_NAME, "arguments": {"positions": ["Past"]}}),
         rng=random.Random(1),
@@ -217,14 +174,14 @@ def test_tools_call_without_label_has_empty_meta(monkeypatch: pytest.MonkeyPatch
         {"positions": []},
         {"positions": ["Past", "Past"]},
         {"positions": ["Past", "  "]},
-        {"positions": [f"P{i}" for i in range(31)]},
+        {"positions": [f"P{i}" for i in range(MAX_POSITIONS + 1)]},
         {"positions": ["Past"], "label": 123},
-        {"positions": ["Past"], "label": "x" * 201},
+        {"positions": ["x" * (MAX_POSITION_LENGTH + 1)]},
+        {"positions": ["Past"], "label": "x" * (MAX_LABEL_LENGTH + 1)},
         [],
     ],
 )
-def test_tools_call_invalid_arguments_returns_isError(monkeypatch: pytest.MonkeyPatch, arguments):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_tools_call_invalid_arguments_returns_is_error(arguments):
     resp = call(rpc("tools/call", {"name": TOOL_NAME, "arguments": arguments}))
     assert resp.status == 200
     payload = decode(resp)
@@ -236,8 +193,7 @@ def test_tools_call_invalid_arguments_returns_isError(monkeypatch: pytest.Monkey
     assert "structuredContent" not in result
 
 
-def test_tools_call_unknown_tool_is_jsonrpc_error(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_tools_call_unknown_tool_is_jsonrpc_error():
     resp = call(rpc("tools/call", {"name": "not_a_tool", "arguments": {"positions": ["Past"]}}))
     assert resp.status == 200
     error = decode(resp)["error"]
@@ -248,36 +204,29 @@ def test_tools_call_unknown_tool_is_jsonrpc_error(monkeypatch: pytest.MonkeyPatc
     "params",
     [None, [], {"name": 5}],
 )
-def test_tools_call_missing_name_or_bad_params(monkeypatch: pytest.MonkeyPatch, params):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
-    if params is None:
-        body = rpc("tools/call")
-    else:
-        body = rpc("tools/call", params)
+def test_tools_call_missing_name_or_bad_params(params):
+    body = rpc("tools/call") if params is None else rpc("tools/call", params)
     resp = call(body)
     assert resp.status == 200
     assert decode(resp)["error"]["code"] == -32602
 
 
-def test_unknown_method_returns_method_not_found(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_unknown_method_returns_method_not_found():
     resp = call(rpc("no/such/method"))
     assert resp.status == 200
     error = decode(resp)["error"]
     assert error["code"] == -32601
 
 
-def test_server_discover_returns_method_not_found_with_id(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
-    resp = call(rpc("server/discover", id=17))
+def test_server_discover_returns_method_not_found_with_id():
+    resp = call(rpc("server/discover", req_id=17))
     assert resp.status == 200
     payload = decode(resp)
     assert payload["id"] == 17
     assert payload["error"]["code"] == -32601
 
 
-def test_unknown_method_notification_returns_202_empty(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_unknown_method_notification_returns_202_empty():
     body = json.dumps({"jsonrpc": "2.0", "method": "no/such/method"}).encode("utf-8")
     resp = call(body)
     assert resp.status == 202
@@ -285,13 +234,11 @@ def test_unknown_method_notification_returns_202_empty(monkeypatch: pytest.Monke
 
 
 def test_dispatch_unexpected_exception_returns_500(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
-
     def boom(*_args, **_kwargs):
         raise RuntimeError("unexpected")
 
     monkeypatch.setattr("api.mcp.dispatch", boom)
-    resp = call(rpc("ping", id=42))
+    resp = call(rpc("ping", req_id=42))
     assert resp.status == 500
     payload = decode(resp)
     assert payload["id"] == 42
@@ -299,16 +246,21 @@ def test_dispatch_unexpected_exception_returns_500(monkeypatch: pytest.MonkeyPat
     assert payload["error"]["message"] == "Internal error"
 
 
-def test_importerror_fallback_import_path_present():
-    source = (Path(__file__).resolve().parents[1] / "api" / "mcp.py").read_text(
-        encoding="utf-8"
+def test_imports_as_bare_module_like_vercel():
+    """Vercel loads api/mcp.py with api/ on sys.path, so `import api.tarot` fails there."""
+    code = "import sys; sys.path.insert(0, 'api'); import mcp; print(mcp.MAX_POSITIONS)"
+    result = subprocess.run(
+        [sys.executable, "-I", "-c", code],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
     )
-    assert "from tarot import draw_spread, is_authorized, MAX_POSITIONS" in source
+    assert result.stdout.strip() == str(MAX_POSITIONS)
 
 
 @pytest.mark.parametrize("body", [b"{not json", b""])
-def test_parse_error(monkeypatch: pytest.MonkeyPatch, body):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_parse_error(body):
     resp = call(body)
     assert resp.status == 400
     payload = decode(resp)
@@ -316,8 +268,7 @@ def test_parse_error(monkeypatch: pytest.MonkeyPatch, body):
     assert payload["id"] is None
 
 
-def test_batch_rejected(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_batch_rejected():
     body = json.dumps([{"jsonrpc": "2.0", "id": 1, "method": "ping"}]).encode("utf-8")
     resp = call(body)
     assert resp.status == 400
@@ -332,25 +283,24 @@ def test_batch_rejected(monkeypatch: pytest.MonkeyPatch):
         {"jsonrpc": "2.0", "method": 5, "id": 1},
         {"jsonrpc": "2.0", "method": "ping", "id": None},
         {"jsonrpc": "2.0", "method": "ping", "id": True},
+        5,
+        "ping",
     ],
 )
-def test_invalid_request_shapes(monkeypatch: pytest.MonkeyPatch, message):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_invalid_request_shapes(message):
     resp = call(json.dumps(message).encode("utf-8"))
     assert resp.status == 400
     assert decode(resp)["error"]["code"] == -32600
 
 
-def test_client_response_message_returns_202(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_client_response_message_returns_202():
     body = json.dumps({"jsonrpc": "2.0", "id": 1, "result": {}}).encode("utf-8")
     resp = call(body)
     assert resp.status == 202
     assert resp.body == b""
 
 
-def test_body_too_large_returns_413(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_body_too_large_returns_413():
     resp = call(b"x" * (MAX_BODY_BYTES + 1))
     assert resp.status == 413
     assert decode(resp)["error"]["code"] == -32600
@@ -360,16 +310,15 @@ def test_body_too_large_returns_413(monkeypatch: pytest.MonkeyPatch):
 # HTTP semantics, CORS and auth
 # -------------------------
 
-def test_get_returns_405_with_allow(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+
+def test_get_returns_405_with_allow():
     resp = call(b"", method="GET")
     assert resp.status == 405
     assert resp.headers.get("Allow") == "POST, OPTIONS"
     assert decode(resp)["error"]["code"] == -32000
 
 
-def test_delete_returns_405(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_delete_returns_405():
     resp = call(b"", method="DELETE")
     assert resp.status == 405
     assert resp.headers.get("Allow") == "POST, OPTIONS"
@@ -393,20 +342,17 @@ def test_options_returns_204_with_cors_even_when_auth_enabled(monkeypatch: pytes
 
 
 def test_cors_header_present_on_post_200_and_401(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
     ok = call(rpc("initialize", {"protocolVersion": "2025-11-25"}))
     assert ok.status == 200
     assert ok.headers.get("Access-Control-Allow-Origin") == "*"
 
     monkeypatch.setenv("TAROT_API_KEY", "secret")
-    monkeypatch.delenv("TAROT_MCP_PUBLIC", raising=False)
     unauthorized = call(rpc("initialize", {"protocolVersion": "2025-11-25"}))
     assert unauthorized.status == 401
     assert unauthorized.headers.get("Access-Control-Allow-Origin") == "*"
 
 
-def test_auth_disabled_allows_without_header(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
+def test_auth_disabled_allows_without_header():
     resp = call(rpc("ping"))
     assert resp.status == 200
     assert decode(resp)["result"] == {}
@@ -414,7 +360,6 @@ def test_auth_disabled_allows_without_header(monkeypatch: pytest.MonkeyPatch):
 
 def test_auth_enabled_missing_header_401(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("TAROT_API_KEY", "secret")
-    monkeypatch.delenv("TAROT_MCP_PUBLIC", raising=False)
     resp = call(rpc("ping"))
     assert resp.status == 401
     payload = decode(resp)
@@ -426,7 +371,6 @@ def test_auth_enabled_missing_header_401(monkeypatch: pytest.MonkeyPatch):
 
 def test_auth_enabled_wrong_token_401(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("TAROT_API_KEY", "secret")
-    monkeypatch.delenv("TAROT_MCP_PUBLIC", raising=False)
     resp = call(rpc("ping"), headers={"Authorization": "Bearer wrong"})
     assert resp.status == 401
     payload = decode(resp)
@@ -450,108 +394,138 @@ def test_auth_enabled_correct_token_200(monkeypatch: pytest.MonkeyPatch):
     assert decode(resp)["result"] == {}
 
 
-# -------------------------
-# Socket tests
-# -------------------------
-
-def test_socket_initialize(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
-    server, t, port = _start_server()
-    try:
-        status, headers, body = _request(
-            port,
-            "POST",
-            headers={"Content-Type": "application/json"},
-            body=rpc("initialize", {"protocolVersion": "2025-11-25"}),
-        )
-        assert status == 200
-        assert headers.get("Content-Type") == "application/json"
-        payload = json.loads(body.decode("utf-8"))
-        assert payload["result"]["serverInfo"]["name"] == "tarot-reader"
-    finally:
-        _stop_server(server, t)
+# Origin and protocol-version headers (MCP transport spec)
 
 
-def test_socket_tools_call(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
-    server, t, port = _start_server()
-    try:
-        status, headers, body = _request(
-            port,
-            "POST",
-            headers={"Content-Type": "application/json"},
-            body=rpc(
-                "tools/call",
-                {
-                    "name": TOOL_NAME,
-                    "arguments": {"positions": ["Past", "Present", "Future"]},
-                },
-            ),
-        )
-        assert status == 200
-        payload = json.loads(body.decode("utf-8"))
-        assert len(payload["result"]["structuredContent"]["draws"]) == 3
-    finally:
-        _stop_server(server, t)
+@pytest.mark.parametrize(
+    "origin",
+    [None, "", "http://localhost:6274", "http://127.0.0.1:8000", "http://[::1]:3000"],
+)
+def test_missing_or_local_origin_is_allowed(origin):
+    headers = {} if origin is None else {"Origin": origin}
+    assert call(rpc("ping"), headers=headers).status == 200
 
 
-def test_socket_options_preflight(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
-    server, t, port = _start_server()
-    try:
-        status, headers, body = _request(port, "OPTIONS")
-        assert status == 204
-        assert body == b""
-        assert headers.get("Access-Control-Allow-Origin") == "*"
-    finally:
-        _stop_server(server, t)
+@pytest.mark.parametrize(
+    "origin",
+    ["https://attacker.example", "http://localhost.attacker.example", "null", "file://"],
+)
+@pytest.mark.parametrize("method", ["POST", "OPTIONS"])
+def test_foreign_origin_is_forbidden(origin, method):
+    resp = call(rpc("ping"), headers={"Origin": origin}, method=method)
+    assert resp.status == 403
+    payload = decode(resp)
+    assert payload["id"] is None
+    assert payload["error"]["message"] == "Forbidden origin"
+
+
+def test_origin_check_runs_before_auth(monkeypatch):
+    monkeypatch.setenv("TAROT_API_KEY", "secret")
+    assert call(rpc("ping"), headers={"Origin": "https://attacker.example"}).status == 403
+
+
+@pytest.mark.parametrize(
+    ("configured", "origin"),
+    [
+        ("https://app.example", "https://app.example"),
+        ("https://other.example, https://app.example/", "https://app.example"),
+        ("*", "https://anything.example"),
+    ],
+)
+def test_allowed_origins_env_var(monkeypatch, configured, origin):
+    monkeypatch.setenv("TAROT_MCP_ALLOWED_ORIGINS", configured)
+    assert call(rpc("ping"), headers={"Origin": origin}).status == 200
+
+
+def test_supported_protocol_version_header_is_accepted():
+    resp = call(rpc("ping"), headers={"MCP-Protocol-Version": "2025-06-18"})
+    assert resp.status == 200
+
+
+def test_unsupported_protocol_version_header_returns_400():
+    resp = call(rpc("ping", req_id=9), headers={"MCP-Protocol-Version": "1999-01-01"})
+    assert resp.status == 400
+    payload = decode(resp)
+    assert payload["id"] == 9
+    assert payload["error"]["code"] == -32600
+
+
+def test_initialize_ignores_protocol_version_header():
+    """Version negotiation happens in the initialize body, so the header can't block it."""
+    resp = call(
+        rpc("initialize", {"protocolVersion": "2025-11-25"}),
+        headers={"MCP-Protocol-Version": "2099-01-01"},
+    )
+    assert resp.status == 200
+    assert decode(resp)["result"]["protocolVersion"] == "2025-11-25"
+
+
+def test_input_schema_limits_match_engine():
+    positions = INPUT_SCHEMA["properties"]["positions"]
+    assert positions["maxItems"] == MAX_POSITIONS
+    assert positions["items"]["maxLength"] == MAX_POSITION_LENGTH
+    assert INPUT_SCHEMA["properties"]["label"]["maxLength"] == MAX_LABEL_LENGTH
+
+
+# Socket adapter (serve)
+
+
+def test_socket_initialize(server):
+    resp = server.request(
+        "POST", headers=JSON, body=rpc("initialize", {"protocolVersion": "2025-11-25"})
+    )
+    assert resp.status == 200
+    assert resp.headers.get("Content-Type") == "application/json"
+    assert json.loads(resp.body)["result"]["serverInfo"]["name"] == "tarot-reader"
+
+
+def test_socket_tools_call(server):
+    body = rpc(
+        "tools/call",
+        {"name": TOOL_NAME, "arguments": {"positions": ["Past", "Present", "Future"]}},
+    )
+    resp = server.request("POST", headers=JSON, body=body)
+    assert resp.status == 200
+    assert len(json.loads(resp.body)["result"]["structuredContent"]["draws"]) == 3
+
+
+def test_socket_options_preflight(server):
+    resp = server.request("OPTIONS")
+    assert resp.status == 204
+    assert resp.body == b""
+    assert resp.headers.get("Access-Control-Allow-Origin") == "*"
 
 
 @pytest.mark.parametrize("content_length", ["not-a-number", "-5"])
-def test_serve_invalid_or_negative_content_length(
-    monkeypatch: pytest.MonkeyPatch, content_length: str
-):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
-    server, t, port = _start_server()
-    try:
-        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=2)
-        try:
-            conn.putrequest("POST", "/")
-            conn.putheader("Content-Type", "application/json")
-            conn.putheader("Content-Length", content_length)
-            conn.endheaders()
-            resp = conn.getresponse()
-            status = resp.status
-            body = resp.read()
-        finally:
-            conn.close()
-        assert status == 400
-        payload = json.loads(body.decode("utf-8"))
-        assert payload["error"]["code"] == -32700
-    finally:
-        _stop_server(server, t)
+def test_serve_invalid_or_negative_content_length(server, content_length):
+    resp = server.raw_request("POST", "/", {**JSON, "Content-Length": content_length})
+    assert resp.status == 400
+    assert json.loads(resp.body)["error"]["code"] == -32700
 
 
-def test_socket_chunked_initialize(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.delenv("TAROT_API_KEY", raising=False)
-    server, t, port = _start_server()
+def test_socket_oversized_body_returns_413(server):
+    resp = server.request("POST", headers=JSON, body=b"x" * (MAX_BODY_BYTES + 10))
+    assert resp.status == 413
+
+
+def _post_chunked(port, chunks):
+    """http.client sends Transfer-Encoding: chunked when the body is an iterable."""
+    conn = http.client.HTTPConnection("127.0.0.1", port, timeout=2)
     try:
-        conn = http.client.HTTPConnection("127.0.0.1", port, timeout=2)
-        try:
-            conn.request(
-                "POST",
-                "/",
-                body=rpc("initialize", {"protocolVersion": "2025-11-25"}),
-                headers={"Content-Type": "application/json"},
-                encode_chunked=True,
-            )
-            resp = conn.getresponse()
-            status = resp.status
-            body = resp.read()
-        finally:
-            conn.close()
-        assert status == 200
-        payload = json.loads(body.decode("utf-8"))
-        assert payload["result"]["serverInfo"]["name"] == "tarot-reader"
+        conn.request("POST", "/", body=iter(chunks), headers=JSON)
+        resp = conn.getresponse()
+        return resp.status, resp.read()
     finally:
-        _stop_server(server, t)
+        conn.close()
+
+
+def test_socket_chunked_initialize(server):
+    body = rpc("initialize", {"protocolVersion": "2025-11-25"})
+    status, data = _post_chunked(server.port, [body[:10], body[10:]])
+    assert status == 200
+    assert json.loads(data)["result"]["serverInfo"]["name"] == "tarot-reader"
+
+
+def test_socket_chunked_oversized_body_returns_413(server):
+    status, _ = _post_chunked(server.port, [b"x" * 40_000, b"x" * 40_000])
+    assert status == 413

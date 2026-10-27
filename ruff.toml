@@ -1,0 +1,19 @@
+target-version = "py312"
+line-length = 100
+
+[lint]
+select = [
+  "E", "W",  # pycodestyle
+  "F",       # pyflakes
+  "I",       # import order
+  "N",       # naming
+  "B",       # bugbear
+  "UP",      # pyupgrade
+  "SIM",     # simplify
+  "PT",      # pytest style
+  "RUF",     # ruff-specific
+]
+
+[lint.pep8-naming]
+# BaseHTTPRequestHandler dispatches to do_GET, do_POST and so on.
+extend-ignore-names = ["do_*", "TarotHandler", "McpHandler"]
