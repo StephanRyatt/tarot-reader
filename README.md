@@ -19,7 +19,7 @@ tool's instructions tell the model to draw once and to interpret only the cards 
 A public instance runs at **`https://tarot-reader-omega.vercel.app/mcp`**. It needs no key and is rate-limited.
 
 * **Claude Code:** `claude mcp add --transport http tarot-reader https://tarot-reader-omega.vercel.app/mcp`
-* **claude.ai:** Settings → Connectors → Add custom connector, paste the URL, leave authentication off.
+* **claude.ai:** Customize → Connectors → Add custom connector, paste the URL, leave authentication off.
 * **ChatGPT:** add it as a custom MCP server with Authentication set to **None** ([steps](docs/clients.md#chatgpt)).
 
 Then ask for a reading, for example "Do a three-card reading about my week."

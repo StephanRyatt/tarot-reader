@@ -7,7 +7,7 @@ The public instance is `https://tarot-reader-omega.vercel.app/mcp`. It needs no 
 ## Claude
 
 * **Claude Code:** `claude mcp add --transport http tarot-reader https://tarot-reader-omega.vercel.app/mcp`
-* **claude.ai:** Settings → Connectors → Add custom connector, paste the URL, and leave authentication off.
+* **claude.ai:** Customize → Connectors → Add custom connector, paste the URL, and leave authentication off.
 
 ---
 
