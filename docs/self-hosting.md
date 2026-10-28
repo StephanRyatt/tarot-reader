@@ -157,6 +157,19 @@ ngrok http 8000
 
 Then use `https://<id>.ngrok.app/mcp`.
 
+### 5) Test the plugin in claude.ai before merging
+
+Build a zip of `plugin/` into `dist/` (ignored by git):
+
+```bash
+mkdir -p dist && rm -f dist/tarot-reader-plugin.zip && (cd plugin && zip -r ../dist/tarot-reader-plugin.zip .)
+```
+
+Upload it under Customize → Plugins → Add → Upload plugin. The zip is a snapshot: rebuild it after any change to
+`plugin/`, remove the old plugin, and upload again. Remove it before installing from the marketplace, so the skill and
+tool aren't loaded twice. The skill comes from the zip, but the server is whatever is deployed, so server-side changes
+(tool text, prompts) show up only after they reach production.
+
 ---
 
 ## Deployment to Vercel

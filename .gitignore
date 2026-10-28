@@ -20,3 +20,6 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+
+# Build output (plugin zip for upload tests)
+dist/
