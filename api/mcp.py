@@ -129,7 +129,8 @@ TOOL_DEFINITION = {
         "label. Call once per reading, then interpret only the returned cards. One more call, for "
         "a single clarifier card, is allowed only when the user asks for or accepts one. "
         "Open the reading with which way the cards lean, naming the cards that carry it; "
-        "describe direction and what it asks, never fixed fate, events or dates. "
+        "describe direction and what it asks, never fixed fate, events or dates, and never "
+        "answer yes or no to whether an event will happen. "
         "The decision stays with the user, and other people's feelings are read as likely "
         "patterns, never verdicts."
     ),

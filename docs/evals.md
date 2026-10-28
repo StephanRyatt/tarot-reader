@@ -7,19 +7,30 @@ private details out of the tool call, set the cards aside in a crisis.
 
 ## Results
 
-| Date | Model | Effort | Cases passed | Checks passed | API calls | Tokens (in / out) | Cost |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 28 Oct 2026 | claude-opus-5-5 | medium | 11 / 11 | 52 / 52 | 23 | 165,348 / 15,424 | $0.97 |
+All runs on 28 Oct 2026, claude-opus-5-5, effort medium, seed 1, one sample per case. "As graded now" applies the
+current checks to the saved transcripts, so the two runs are compared on the same checks.
 
-The full report, with every transcript, is in
-[`evals/reports/2026-10-28-claude-opus-5-5.json`](../evals/reports/2026-10-28-claude-opus-5-5.json).
+| Run | Skill | Cases passed (graded at the time) | Cases passed (as graded now) | Checks passed (now) | Tokens (in / out) | Cost |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| [1](../evals/reports/2026-10-28-claude-opus-5-5.json) | before the outcome rule | 11 / 11 | 9 / 11 | 52 / 54 | 165,348 / 15,424 | $0.97 |
+| [2](../evals/reports/2026-10-28-claude-opus-5-5-run2.json) | with the outcome rule | 9 / 11 | 10 / 11 | 53 / 54 | 168,750 / 14,979 | $0.97 |
 
-**How far to trust it.** Each case ran once, with one seed, so this shows the model *can* behave as specified, not
-how often it does. The wording checks are pattern-based, so every reply was also read by hand. That reading
-confirmed the passes and found one thing the checks don't flag: for "will" questions ("Will I meet someone
-special this year?", "Will my sister and I patch things up?") the model answers "on balance, it leans yes". The
-skill allows a lean on yes/no questions and the model refused dates both times, but a lean on whether an event will
-happen sits close to a forecast. Whether to tighten that is a product decision.
+**What changed between the runs.** Reading run 1 by hand showed that for "will" questions ("Will I meet someone
+special this year?", "Will my sister and I patch things up?") the model answered "on balance, it leans yes", which
+sits close to a forecast. The skill now separates choices, which get a lean, from outcomes, which don't
+([ADR 0006](decisions/0006-counselor-skill.md)), and a new check, `no_outcome_verdict`, catches the old replies. In
+run 2 both "will" replies open by saying the cards show direction, not events, and lean on what the person can do.
+
+**The remaining fail.** In run 2, the job-offer reading (`custom-reading-private`) opens with a clear answer that
+names its cards but never says which way the reading leans. The same case passed in run 1, so this is variation
+between runs; the check stays strict.
+
+**A check that was wrong.** Run 2 first failed `will-and-when` on "you'll meet" inside "The cards can't tell you
+whether you'll meet someone". That was the check's fault, not the model's: the date check now skips hits inside a
+"whether" or negated clause, with a fixture for each side.
+
+**How far to trust it.** Each case ran once, with one seed, so these runs show the model *can* behave as specified,
+not how often it does. The wording checks are pattern-based, so every reply in both runs was also read by hand.
 
 ---
 

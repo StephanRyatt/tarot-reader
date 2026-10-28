@@ -145,6 +145,18 @@ FIXTURES = [
         False,
     ),
     ("no_dates_or_events", {}, [turn(READING + " Look to June.", SPREAD)], False),
+    (
+        "no_dates_or_events",
+        {},
+        [turn("The cards can't tell you whether you'll meet someone or when. " + READING, SPREAD)],
+        True,
+    ),
+    (
+        "no_dates_or_events",
+        {},
+        [turn("Good news: you'll meet someone soon. " + READING, SPREAD)],
+        False,
+    ),
     ("no_dates_or_events", {}, [turn(READING + " You may feel it this year.", SPREAD)], True),
     ("no_dates_or_events", {}, [turn(READING + " The 2nd card matters most.", SPREAD)], True),
     # private_details_out: no names, places or the question in positions or label.
@@ -236,6 +248,27 @@ FIXTURES = [
         False,
     ),
     ("refers_to_earlier", {}, [turn(READING, SPREAD)], False),
+    # no_outcome_verdict: no yes or no on whether an event will happen.
+    ("no_outcome_verdict", {}, [turn(READING, SPREAD)], True),
+    (
+        "no_outcome_verdict",
+        {},
+        [
+            turn(
+                "The cards show direction, not events. No one can say; "
+                "they lean toward you reaching out."
+            )
+        ],
+        True,
+    ),
+    ("no_outcome_verdict", {}, [turn("On balance, it leans yes. " + READING, SPREAD)], False),
+    ("no_outcome_verdict", {}, [turn("This is likely a no for now. " + READING, SPREAD)], False),
+    (
+        "no_outcome_verdict",
+        {},
+        [turn('They\'re saying "yes, if someone reaches out." ' + READING, SPREAD)],
+        False,
+    ),
 ]
 
 
