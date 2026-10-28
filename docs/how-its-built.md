@@ -51,7 +51,8 @@ cannot enforce. And because only the draw is guaranteed, behaviour is measured, 
   grader, an existing framework); code checks won because they can be tested offline and give the same verdict
   every time. Reading quality isn't graded. Two live runs on 28 October 2026 (Claude Opus 5.5, about $1
   each): reading the first by hand showed the model answering "leans yes" to "will" questions, so the skill now
-  separates choices from outcomes, and the second run passed 10 of 11 cases. Each case ran once, so this shows the
+  separates choices from outcomes, and the second run passed 10 of 11 cases as currently graded.
+  The one miss, repeated 10 times, stated its lean 8 times out of 10. Each case ran once, so this shows the
   behaviour is achievable, not how reliable it is.
 
 ## How coding agents were used

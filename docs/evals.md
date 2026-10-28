@@ -21,13 +21,24 @@ sits close to a forecast. The skill now separates choices, which get a lean, fro
 ([ADR 0006](decisions/0006-counselor-skill.md)), and a new check, `no_outcome_verdict`, catches the old replies. In
 run 2 both "will" replies open by saying the cards show direction, not events, and lean on what the person can do.
 
-**The remaining fail.** In run 2, the job-offer reading (`custom-reading-private`) opens with a clear answer that
-names its cards but never says which way the reading leans. The same case passed in run 1, so this is variation
-between runs; the check stays strict.
+**The remaining fail, measured.** In run 2, the job-offer reading (`custom-reading-private`) opened with a clear
+answer that named its cards but never said which way the reading leaned. It had passed in run 1, but the skill
+changed between the runs, so one sample couldn't say whether this was chance or the new rule. The case was then run
+10 more times on the final skill, at the same seed (same cards), about $0.85 in all:
+[report](../evals/reports/2026-10-28-custom-reading-private-x10.json).
 
-**A check that was wrong.** Run 2 first failed `will-and-when` on "you'll meet" inside "The cards can't tell you
-whether you'll meet someone". That was the check's fault, not the model's: the date check now skips hits inside a
-"whether" or negated clause, with a fixture for each side.
+* **8 of 10 stated a lean.** The two misses answered the question as asked ("what does this move ask of me?")
+  without saying which way the cards lean.
+* **A likely cause:** the skill defines a lean for choices and for daily and weekly pulls, but not for an open
+  question about a situation, like this one.
+* **The decision rule, set before running:** 0–1 misses, no change; 3 or more, change the skill. Two misses fall
+  between, so the result is recorded rather than acted on, and the check stays strict.
+* An earlier batch of 10 was discarded because the skill's wording was edited while it ran.
+
+**Checks that were wrong.** Run 2 first failed `will-and-when` on "you'll meet" inside "The cards can't tell you
+whether you'll meet someone", and a repeat failed on "picture your life in a year without the move". Both were the
+check's fault, not the model's: the date check now skips hits inside a "whether", negated or "picture"/"imagine"
+clause, with a passing and a failing fixture for each.
 
 **How far to trust it.** Each case ran once, with one seed, so these runs show the model *can* behave as specified,
 not how often it does. The wording checks are pattern-based, so every reply in both runs was also read by hand.
