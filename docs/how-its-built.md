@@ -44,12 +44,13 @@ cannot enforce. And because only the draw is guaranteed, behaviour is measured, 
 * **CI** (GitHub Actions) runs ruff, strict mypy and the test suite with a 95% coverage floor on every push and pull
   request. Vercel deploys `main`.
 * **Behaviour evals** ([docs/evals.md](evals.md)) play 11 scripted conversations through a real model with the
-  shipped skill and tool, run the draws locally with fixed seeds, and grade each transcript with 11 code checks:
+  shipped skill and tool, run the draws locally with fixed seeds, and grade each transcript with code checks:
   draw counts, only returned cards, the lean first, no dates or events, nothing private in the tool call, crisis
-  handling, and more. Each check has a passing and a failing example in the test suite. A full run is estimated at
-  about $1.50 on Claude Opus 5.5. The harness was chosen by comparing three designs (code checks, a model as
+  handling, and more. Each check has a passing and a failing example in the test suite. A full run costs about $1 on
+  Claude Opus 5.5. The harness was chosen by comparing three designs (code checks, a model as
   grader, an existing framework); code checks won because they can be tested offline and give the same verdict
-  every time. Reading quality isn't graded. The harness has not yet been run against a live model.
+  every time. Reading quality isn't graded. The first live run (28 October 2026, Claude Opus 5.5) passed all
+  11 cases for $0.97; each case ran once, so it shows the behaviour is achievable, not how reliable it is.
 
 ## How coding agents were used
 
@@ -70,8 +71,8 @@ the direction, the product and design decisions, and the review.
 
 ## What it doesn't do
 
-* It can't make a model follow the skill; the evals are built to measure how often it does, and their first
-  live run is still to come.
+* It can't make a model follow the skill. One eval run passed, but one run per case can't show how reliably
+  the model behaves.
 * ChatGPT gets the tool only, not the skill.
 * The Codex setup is documented but untested.
 * Readings are interpretive reflection: no predictions, and no medical, legal or financial guidance.

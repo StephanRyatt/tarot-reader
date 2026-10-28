@@ -5,8 +5,21 @@ conversations through a real Claude model, with the shipped skill and tool, and 
 the model does what the product promises: draw once, invent no cards, lead with a lean, keep
 private details out of the tool call, set the cards aside in a crisis.
 
-**Results so far:** none. The harness and its grading are tested offline, but it has not yet been run against a
-live model. Results will be recorded here, with the date, model and pass rates, after the first run.
+## Results
+
+| Date | Model | Effort | Cases passed | Checks passed | API calls | Tokens (in / out) | Cost |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 28 Oct 2026 | claude-opus-5-5 | medium | 11 / 11 | 52 / 52 | 23 | 165,348 / 15,424 | $0.97 |
+
+The full report, with every transcript, is in
+[`evals/reports/2026-10-28-claude-opus-5-5.json`](../evals/reports/2026-10-28-claude-opus-5-5.json).
+
+**How far to trust it.** Each case ran once, with one seed, so this shows the model *can* behave as specified, not
+how often it does. The wording checks are pattern-based, so every reply was also read by hand. That reading
+confirmed the passes and found one thing the checks don't flag: for "will" questions ("Will I meet someone
+special this year?", "Will my sister and I patch things up?") the model answers "on balance, it leans yes". The
+skill allows a lean on yes/no questions and the model refused dates both times, but a lean on whether an event will
+happen sits close to a forecast. Whether to tighten that is a product decision.
 
 ---
 
@@ -30,8 +43,8 @@ python -m evals
 
 The exit code is 0 only when every case passes.
 
-**Cost, estimated:** about **$1.50 per full run** on `claude-opus-5-5` ($4 input and $20
-output per million tokens); budget up to $3. This is an estimate, not a measurement: 11 cases
+**Cost:** the first full run cost **$0.97** on `claude-opus-5-5` at list prices ($4 input and $20
+output per million tokens; see [Results](#results)). Before that run it was estimated at about $1.50: 11 cases
 make about 23 API calls, each sending about 5,000 tokens of skill, spread library and tool
 definition plus the conversation so far (about 140,000 input tokens in all), and readings with
 thinking come to roughly 45,000 output tokens. Every run prints its real token counts and the
