@@ -48,7 +48,12 @@ def test_clarifier_exception_is_everywhere_and_needs_consent():
 def test_tool_description_carries_the_core_method():
     # The tool description is the one text every client shows the model, skill or not.
     description = TOOL_DEFINITION["description"]
-    for phrase in ("lean", "naming the cards", "never fixed fate, events or dates"):
+    for phrase in (
+        "lean",
+        "naming the cards",
+        "never fixed fate, events or dates",
+        "never answer yes or no to whether an event will happen",
+    ):
         assert phrase in description
     assert "decision stays with the user" in description
     assert "likely patterns, never verdicts" in description

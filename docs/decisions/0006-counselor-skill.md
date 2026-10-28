@@ -21,6 +21,10 @@ extending the old skill and rebuilding on the Uranian structure. All three chose
 * **Readings lean.** Each reading opens with which way the cards lean, naming the cards that carry it. "Will I" and
   "when" questions are reframed toward direction and what the situation asks, never events or dates. The decision
   stays with the person.
+* **Choices lean; outcomes don't.** A yes/no question about a choice ("Should I…?") gets a lean. A question about
+  an outcome ("Will we patch things up?") never gets a yes or no on the event: the reading leans on what the person
+  can do and where the current course points. Added after the first eval run, where the model answered "on balance,
+  it leans yes" to two "will" questions, which sat too close to a forecast.
 * **Safeguards against misuse** are part of the skill: fatalism, handing over the decision, asking again for a
   different answer, readings used to control others, spiritual bypassing, many readings a day, and medical, legal or
   financial decisions. A crisis sets the cards aside.

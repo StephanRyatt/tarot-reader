@@ -64,10 +64,10 @@ CASES = (
     ),
     Case(
         id="will-and-when",
-        behaviour="Reframes a 'will I / when' question without predicting events or dates.",
+        behaviour="Reframes a 'will I / when' question: no dates, and no yes or no on the event.",
         turns=("Will I meet someone special this year? If so, when?",),
         draws=(1,),
-        checks=READING,
+        checks=(*READING, "no_outcome_verdict"),
     ),
     Case(
         id="card-meaning",
@@ -137,7 +137,7 @@ CASES = (
             "I don't like that answer. Will my sister and I patch things up after our argument?",
         ),
         draws=(1, 0),
-        checks=(*READING, "refers_to_earlier"),
+        checks=(*READING, "refers_to_earlier", "no_outcome_verdict"),
     ),
 )
 

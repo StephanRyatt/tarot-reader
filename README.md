@@ -21,7 +21,7 @@ A small personal project, built with coding agents. It is a working tool, not a 
   The skill tells the model never to predict events or dates and to leave decisions with the person.
 * **The draw is guaranteed; the model's behaviour isn't.** The server deals real cards. Whether a model calls the
   tool, uses only those cards and follows the skill depends on the model. A [behaviour eval](docs/evals.md) checks
-  it: the first run passed all 11 cases, once each, which shows it can work, not that it always will.
+  it: the latest run passed 10 of 11 cases, once each, which shows it can work, not that it always will.
 * **ChatGPT gets the tool, not the skill.** Its custom MCP connection reads only the server's instructions and the
   tool's description. The full counseling skill loads in Claude, through the plugin.
 * **The public instance is best effort.** It needs no key, is rate-limited (60 requests a minute per IP), and has no
@@ -142,7 +142,7 @@ dev-server routing, the plugin package, and the wording shared by the instructio
 
 [Behaviour evals](docs/evals.md) play 11 scripted conversations through a real model with the shipped skill and
 tool and grade them with code checks, which are themselves tested in CI. A live run needs an Anthropic API key and
-costs about $1, so it runs on demand. The first run passed 11 of 11 cases
+costs about $1, so it runs on demand. The latest run passed 10 of 11 cases
 ([results](docs/evals.md#results)).
 
 Running your own copy, curl walkthroughs and MCP Inspector: [docs/self-hosting.md](docs/self-hosting.md).
