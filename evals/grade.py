@@ -238,15 +238,17 @@ DATE_OR_EVENT_PATTERNS = (
 )
 
 
-# "The cards can't tell you whether you'll meet someone" disclaims a prediction; it isn't one.
+# "The cards can't tell you whether you'll meet someone" disclaims a prediction, and "picture your
+# life in a year" asks the person to imagine one; neither is a forecast.
 DISCLAIMER = re.compile(
-    r"\b(?:whether|if)\b|\b(?:can'?t|cannot|can\u2019t|won'?t|won\u2019t|don'?t|don\u2019t|not)\b",
+    r"\b(?:whether|if|picture|imagine)\b"
+    r"|\b(?:can'?t|cannot|can\u2019t|won'?t|won\u2019t|don'?t|don\u2019t|not)\b",
     re.IGNORECASE,
 )
 
 
 def _disclaimed(text: str, start: int) -> bool:
-    """True when the hit sits in the same clause as a 'whether' or a negation before it."""
+    """True when the hit sits in the same clause as a disclaimer or an 'imagine' before it."""
     clause = re.split(r"[.!?;:\n]", text[max(0, start - 60) : start])[-1]
     return bool(DISCLAIMER.search(clause))
 

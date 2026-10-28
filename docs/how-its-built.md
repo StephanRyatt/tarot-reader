@@ -49,9 +49,11 @@ cannot enforce. And because only the draw is guaranteed, behaviour is measured, 
   handling, and more. Each check has a passing and a failing example in the test suite. A full run costs about $1 on
   Claude Opus 5.5. The harness was chosen by comparing three designs (code checks, a model as
   grader, an existing framework); code checks won because they can be tested offline and give the same verdict
-  every time. Reading quality isn't graded. Two live runs on 28 October 2026 (Claude Opus 5.5, about $1
+  every time. Reading quality isn't graded. Three live runs on 28 October 2026 (Claude Opus 5.5, about $1
   each): reading the first by hand showed the model answering "leans yes" to "will" questions, so the skill now
-  separates choices from outcomes, and the second run passed 10 of 11 cases. Each case ran once, so this shows the
+  separates choices from outcomes, and the second run passed 10 of 11 cases as currently graded.
+  The one miss, repeated 10 times, stated its lean 8 times out of 10, and a third full run on the final skill
+  passed 11 of 11. Each case ran once, so this shows the
   behaviour is achievable, not how reliable it is.
 
 ## How coding agents were used
@@ -73,7 +75,7 @@ the direction, the product and design decisions, and the review.
 
 ## What it doesn't do
 
-* It can't make a model follow the skill. Two eval runs, one sample per case each, can't show how reliably
+* It can't make a model follow the skill. Three eval runs, one sample per case each, can't show how reliably
   the model behaves.
 * ChatGPT gets the tool only, not the skill.
 * The Codex setup is documented but untested.

@@ -157,6 +157,18 @@ FIXTURES = [
         [turn("Good news: you'll meet someone soon. " + READING, SPREAD)],
         False,
     ),
+    (
+        "no_dates_or_events",
+        {},
+        [turn("Picture your life in a year without the move. " + READING, SPREAD)],
+        True,
+    ),
+    (
+        "no_dates_or_events",
+        {},
+        [turn("In a year you'll be leading the team. " + READING, SPREAD)],
+        False,
+    ),
     ("no_dates_or_events", {}, [turn(READING + " You may feel it this year.", SPREAD)], True),
     ("no_dates_or_events", {}, [turn(READING + " The 2nd card matters most.", SPREAD)], True),
     # private_details_out: no names, places or the question in positions or label.

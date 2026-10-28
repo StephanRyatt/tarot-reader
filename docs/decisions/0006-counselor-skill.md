@@ -8,15 +8,15 @@ The first skill was procedural: draw, then walk through each card and summarise.
 other way, with a long reading arc that banned advice, steps and resolution. Both produced readings that hedged and
 gave little help with an actual decision.
 
-The owner's astrology product, Uranian, already has a counseling voice that works: honest in content, compassionate in
-delivery, answer first, every claim tied to evidence, the choice left with the person. A decision council (a blind
-solver, a pre-mortem skeptic and a veteran-reader persona, run independently) compared adapting the GPT instructions,
-extending the old skill and rebuilding on the Uranian structure. All three chose the rebuild.
+The target was a counselor's voice: answer first, every claim tied to a card, honest about hard cards, and the
+choice left with the person. A decision council (a blind solver, a pre-mortem skeptic and a veteran-reader persona,
+run independently) compared adapting the GPT instructions, extending the old skill and rebuilding the skill around
+that voice. All three chose the rebuild.
 
 ## Decision
 
-* **The skill is a counselor.** `plugin/skills/tarot-reading/SKILL.md` follows the Uranian ethos with a method native
-  to tarot: positions written for the question, one meaning per card, patterns across the spread (Major Arcana count,
+* **The skill is a counselor.** `plugin/skills/tarot-reading/SKILL.md` is built around that voice, with a method
+  native to tarot: positions written for the question, one meaning per card, patterns across the spread (Major Arcana count,
   dominant suit, repeated numbers, court cards), and at most three patterns per reading.
 * **Readings lean.** Each reading opens with which way the cards lean, naming the cards that carry it. "Will I" and
   "when" questions are reframed toward direction and what the situation asks, never events or dates. The decision

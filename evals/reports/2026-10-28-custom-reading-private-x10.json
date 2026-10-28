@@ -1,0 +1,1127 @@
+{
+  "case": "custom-reading-private",
+  "purpose": "10 repeats on the final skill, seed 1, to test whether the run-2 lean miss is chance or a pattern",
+  "decision_rule_set_before_running": "0-1 lean_first fails: no skill change; 3 or more: change the skill",
+  "runs": [
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:47:05+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14186,
+        "output_tokens": 1632,
+        "estimated_cost_usd": 0.0894,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "pass",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": true,
+              "detail": "each reading opens with a lean naming a drawn card"
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 251
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7263,
+              "output_tokens": 1381
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "I drew three cards for you: **Eight of Pentacles, Death and The Devil, all upright.** On balance they say the job itself isn't the hard part. The Eight of Pentacles shows work you can learn. The real weight is in the other two cards. Death says this move ends a chapter of your life. The Devil asks whether your answer, yes or no, is coming from a free choice or from something that has a hold on you.\n\n**What the move asks of you: Eight of Pentacles (upright)**\nThis is the apprentice's card. The move asks you to become a beginner again. Leading a team is a new skill, learned through patient, repeated, unglamorous effort. Nothing here suggests you can't do it. It asks for steady work, not brilliance on day one.\n\n**What's behind the hesitation: Death (upright)**\nYour hesitation is about an ending more than the job. Saying yes closes something: your current role, being one of the team rather than its lead, maybe the life you've built where you are. Death is a real ending and shouldn't be softened. But grieving an ending isn't the same as having a reason to refuse.\n\n**What matters most in choosing: The Devil (upright)**\nThis card asks what's holding you. Pressure can pull you toward yes: status, money, not wanting to disappoint Priya. Comfort and habit can pull you toward no. In the classic image, the chains are loose enough to lift off. Choose from what you actually want, not from what grips you.\n\n**How they fit**\nTwo of the three cards are Major Arcana, which points to a real turning point. The choice is how you meet it. The Eight of Pentacles matters least here. It says the practical side can be managed, so don't let worry about whether you're capable decide this.\n\n**What it asks of you**\n- **The Devil:** Write down every reason for yes and every reason for no. Mark the ones that come from obligation or fear. Whatever's left unmarked is your real answer.\n- **Eight of Pentacles:** Before you decide, ask Priya what the role looks like day to day. Decide based on the actual work, not the title.\n\nThe decision is yours. To make the reading sharper: which part of your current life would you be most sorry to lose?",
+                "final_text": "I drew three cards for you: **Eight of Pentacles, Death and The Devil, all upright.** On balance they say the job itself isn't the hard part. The Eight of Pentacles shows work you can learn. The real weight is in the other two cards. Death says this move ends a chapter of your life. The Devil asks whether your answer, yes or no, is coming from a free choice or from something that has a hold on you.\n\n**What the move asks of you: Eight of Pentacles (upright)**\nThis is the apprentice's card. The move asks you to become a beginner again. Leading a team is a new skill, learned through patient, repeated, unglamorous effort. Nothing here suggests you can't do it. It asks for steady work, not brilliance on day one.\n\n**What's behind the hesitation: Death (upright)**\nYour hesitation is about an ending more than the job. Saying yes closes something: your current role, being one of the team rather than its lead, maybe the life you've built where you are. Death is a real ending and shouldn't be softened. But grieving an ending isn't the same as having a reason to refuse.\n\n**What matters most in choosing: The Devil (upright)**\nThis card asks what's holding you. Pressure can pull you toward yes: status, money, not wanting to disappoint Priya. Comfort and habit can pull you toward no. In the classic image, the chains are loose enough to lift off. Choose from what you actually want, not from what grips you.\n\n**How they fit**\nTwo of the three cards are Major Arcana, which points to a real turning point. The choice is how you meet it. The Eight of Pentacles matters least here. It says the practical side can be managed, so don't let worry about whether you're capable decide this.\n\n**What it asks of you**\n- **The Devil:** Write down every reason for yes and every reason for no. Mark the ones that come from obligation or fear. Whatever's left unmarked is your real answer.\n- **Eight of Pentacles:** Before you decide, ask Priya what the role looks like day to day. Decide based on the actual work, not the title.\n\nThe decision is yours. To make the reading sharper: which part of your current life would you be most sorry to lose?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What the move asks of you",
+                        "What's behind the hesitation",
+                        "What matters most in choosing"
+                      ],
+                      "label": "Three-Card Spread"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What the move asks of you",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What's behind the hesitation",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What matters most in choosing",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:47:24+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14199,
+        "output_tokens": 1381,
+        "estimated_cost_usd": 0.0844,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "pass",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": true,
+              "detail": "each reading opens with a lean naming a drawn card"
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 259
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7276,
+              "output_tokens": 1122
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "I drew three cards for you. They lean toward taking the offer seriously. **Death** says this move means fully ending your current role, not a half step. **The Devil** says your hesitation is mostly guarding something you're attached to, and that attachment may not be good judgement. What the role itself asks for, the **Eight of Pentacles**, is steady and very doable: patient work at a new skill.\n\n**What the move asks you to step into: Eight of Pentacles (upright)**\nThis card shows someone working carefully at a craft, one coin at a time. Leading a team is a different job from the one you're good at now. The role asks you to be a beginner again and learn leadership through repetition, not to show up already polished.\n\n**What it asks you to leave behind: Death (upright)**\nThis isn't a literal loss. It's an ending. Moving offices and moving into leadership means letting go of a version of you: the individual contributor, the person whose life is set up where you are now. Death doesn't allow keeping one foot in the old life. Whatever you decide, the cards ask you to choose it completely.\n\n**What your hesitation is protecting: The Devil (upright)**\nThis is the most direct card here. The Devil stands for attachments that feel like safety but keep you small, like comfort, routine or familiar status. In the image the chains are loose, so the figures could step out whenever they want. Your doubt may be protecting something that matters, but it's worth asking whether it's a real need or a habit.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is a real turning point and not a routine career step. The tension is between Death (let go) and the Devil (hold on), and that tension is the actual question in front of you. The Eight of Pentacles matters least. Once you're clear about what you're attached to, the work itself looks manageable.\n\n**What it asks of you**\n- **Devil:** Write down exactly what you'd lose by moving. Next to each item, note whether it's something you need or something you're used to.\n- **Eight of Pentacles:** Ask Priya what the first six months would actually involve, such as training and support, so you can judge the job and not just the idea of it.\n\nThe decision is yours. The cards suggest your hesitation deserves a close look before you treat it as your answer.\n\nWhat feels hardest to leave behind?",
+                "final_text": "I drew three cards for you. They lean toward taking the offer seriously. **Death** says this move means fully ending your current role, not a half step. **The Devil** says your hesitation is mostly guarding something you're attached to, and that attachment may not be good judgement. What the role itself asks for, the **Eight of Pentacles**, is steady and very doable: patient work at a new skill.\n\n**What the move asks you to step into: Eight of Pentacles (upright)**\nThis card shows someone working carefully at a craft, one coin at a time. Leading a team is a different job from the one you're good at now. The role asks you to be a beginner again and learn leadership through repetition, not to show up already polished.\n\n**What it asks you to leave behind: Death (upright)**\nThis isn't a literal loss. It's an ending. Moving offices and moving into leadership means letting go of a version of you: the individual contributor, the person whose life is set up where you are now. Death doesn't allow keeping one foot in the old life. Whatever you decide, the cards ask you to choose it completely.\n\n**What your hesitation is protecting: The Devil (upright)**\nThis is the most direct card here. The Devil stands for attachments that feel like safety but keep you small, like comfort, routine or familiar status. In the image the chains are loose, so the figures could step out whenever they want. Your doubt may be protecting something that matters, but it's worth asking whether it's a real need or a habit.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is a real turning point and not a routine career step. The tension is between Death (let go) and the Devil (hold on), and that tension is the actual question in front of you. The Eight of Pentacles matters least. Once you're clear about what you're attached to, the work itself looks manageable.\n\n**What it asks of you**\n- **Devil:** Write down exactly what you'd lose by moving. Next to each item, note whether it's something you need or something you're used to.\n- **Eight of Pentacles:** Ask Priya what the first six months would actually involve, such as training and support, so you can judge the job and not just the idea of it.\n\nThe decision is yours. The cards suggest your hesitation deserves a close look before you treat it as your answer.\n\nWhat feels hardest to leave behind?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What the move asks you to step into",
+                        "What it asks you to leave behind",
+                        "What your hesitation is protecting"
+                      ],
+                      "label": "Three-Card Custom"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What the move asks you to step into",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What it asks you to leave behind",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What your hesitation is protecting",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:47:43+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 0,
+        "failed": 1,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14234,
+        "output_tokens": 1369,
+        "estimated_cost_usd": 0.0843,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "fail",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": false,
+              "detail": "turn 1 opening says no direction: \"The cards suggest the job itself isn't really what's making you hesitate. The **\""
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 298
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7311,
+              "output_tokens": 1071
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "The cards suggest the job itself isn't really what's making you hesitate. The **Eight of Pentacles** shows the work as something you can learn steadily. The weight sits with **Death** and **The Devil**: taking the role means letting a real chapter end. What should decide it is being honest about what's holding you where you are now. Are you choosing it, or is it just keeping a grip on you?\n\n**What the move asks of you \u2014 Eight of Pentacles (upright)**\nThis is the card of the apprentice at the workbench, getting better one piece at a time. The move asks you to be a beginner again, learning to lead through steady practice rather than knowing it all on day one. It's a modest, doable card. Nothing here says the role is beyond you.\n\n**What your hesitation is protecting \u2014 Death (upright)**\nDeath here means a real ending, not something bad happening. Your hesitation is guarding the life you have now: your current role, the routines you know, maybe who you are where you live. That's a fair thing to protect. Moving would close something, and part of you knows it.\n\n**What matters most in choosing \u2014 The Devil (upright)**\nThe Devil is about attachment: chains loose enough to slip off, worn out of habit or comfort or fear. The deciding question is what's actually tying you down. That could be the comfort of staying, or the pull of a title and the approval of being picked. Your decision should rest on what you truly value, not on what feels hardest to give up.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is about more than a work logistics question. It's a turning point in how you live. The Eight of Pentacles matters least. The skills are learnable either way, and the real choice sits between Death and The Devil.\n\n**What it asks of you**\nGive yourself permission to grieve what you'd leave behind, and don't treat that grief as an answer either way. Two moves:\n- **The Devil:** write down what keeps you here and what pulls you toward the offer. Next to each, mark \"chosen\" or \"habit/fear.\"\n- **Eight of Pentacles:** ask what the first six months would actually involve, so you're weighing the real day-to-day work rather than a vague idea of it.\n\nThe choice is yours. What part of your life now would you miss most if you said yes?",
+                "final_text": "The cards suggest the job itself isn't really what's making you hesitate. The **Eight of Pentacles** shows the work as something you can learn steadily. The weight sits with **Death** and **The Devil**: taking the role means letting a real chapter end. What should decide it is being honest about what's holding you where you are now. Are you choosing it, or is it just keeping a grip on you?\n\n**What the move asks of you \u2014 Eight of Pentacles (upright)**\nThis is the card of the apprentice at the workbench, getting better one piece at a time. The move asks you to be a beginner again, learning to lead through steady practice rather than knowing it all on day one. It's a modest, doable card. Nothing here says the role is beyond you.\n\n**What your hesitation is protecting \u2014 Death (upright)**\nDeath here means a real ending, not something bad happening. Your hesitation is guarding the life you have now: your current role, the routines you know, maybe who you are where you live. That's a fair thing to protect. Moving would close something, and part of you knows it.\n\n**What matters most in choosing \u2014 The Devil (upright)**\nThe Devil is about attachment: chains loose enough to slip off, worn out of habit or comfort or fear. The deciding question is what's actually tying you down. That could be the comfort of staying, or the pull of a title and the approval of being picked. Your decision should rest on what you truly value, not on what feels hardest to give up.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is about more than a work logistics question. It's a turning point in how you live. The Eight of Pentacles matters least. The skills are learnable either way, and the real choice sits between Death and The Devil.\n\n**What it asks of you**\nGive yourself permission to grieve what you'd leave behind, and don't treat that grief as an answer either way. Two moves:\n- **The Devil:** write down what keeps you here and what pulls you toward the offer. Next to each, mark \"chosen\" or \"habit/fear.\"\n- **Eight of Pentacles:** ask what the first six months would actually involve, so you're weighing the real day-to-day work rather than a vague idea of it.\n\nThe choice is yours. What part of your life now would you miss most if you said yes?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What the move asks of you",
+                        "What your hesitation is protecting",
+                        "What matters most in choosing"
+                      ],
+                      "label": "Three-Card Reading"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What the move asks of you",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What your hesitation is protecting",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What matters most in choosing",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:48:04+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14177,
+        "output_tokens": 1349,
+        "estimated_cost_usd": 0.0837,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "pass",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": true,
+              "detail": "each reading opens with a lean naming a drawn card"
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 242
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7254,
+              "output_tokens": 1107
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "The cards point to a move that would ask real, patient work of you, and to a hesitation that comes from sensing an ending more than from doubting the role. On balance they don't say whether to go. Death and the Devil both point at the same thing: whether attachment is making this choice for you, in either direction.\n\n**What the move asks of you \u2014 8 of Pentacles (upright)**\nThe card shows a craftsman carving coin after coin. Leading a team would make you a learner again. You'd be building a new skill one repetition at a time instead of coasting on what you already do well. Nothing here says you can't do it. It says the job is earned through steady practice, not handed to you finished.\n\n**What's behind the hesitation \u2014 Death (upright)**\nThis is the heart of the reading. Death here means an ending, not danger. Some part of you knows that saying yes would close a chapter: your current role, your routines, the version of you that lives where you live now. The hesitation is mostly grief about that ending, and that's a different thing from a sign that the move is wrong.\n\n**What matters most in choosing \u2014 The Devil (upright)**\nThe Devil is about chains we could take off but don't. What should decide this is honesty about what's binding you. A yes driven by status, money, or not wanting to disappoint the person who offered it would be a chain. So would a no that comes from comfort or fear of change. Only a choice you'd make freely holds up.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is more than a job decision. It's a turning point, and the real question is how you meet it. Death and the Devil pull against each other: one says let the old chapter go, the other warns against grabbing the new one for the wrong reasons. The 8 of Pentacles matters least here. The work itself isn't really what's stopping you.\n\n**What it asks of you**\n- Death asks you to name exactly what you'd be losing, in writing. Grief you've named is easier to weigh than a vague sense that something's off.\n- The Devil asks you to list your reasons for each option and mark any that are really \"should,\" \"fear,\" or \"comfort.\" Look at what's left.\n\nThe decision is yours. If you could set aside what anyone else expects, which option would you choose?",
+                "final_text": "The cards point to a move that would ask real, patient work of you, and to a hesitation that comes from sensing an ending more than from doubting the role. On balance they don't say whether to go. Death and the Devil both point at the same thing: whether attachment is making this choice for you, in either direction.\n\n**What the move asks of you \u2014 8 of Pentacles (upright)**\nThe card shows a craftsman carving coin after coin. Leading a team would make you a learner again. You'd be building a new skill one repetition at a time instead of coasting on what you already do well. Nothing here says you can't do it. It says the job is earned through steady practice, not handed to you finished.\n\n**What's behind the hesitation \u2014 Death (upright)**\nThis is the heart of the reading. Death here means an ending, not danger. Some part of you knows that saying yes would close a chapter: your current role, your routines, the version of you that lives where you live now. The hesitation is mostly grief about that ending, and that's a different thing from a sign that the move is wrong.\n\n**What matters most in choosing \u2014 The Devil (upright)**\nThe Devil is about chains we could take off but don't. What should decide this is honesty about what's binding you. A yes driven by status, money, or not wanting to disappoint the person who offered it would be a chain. So would a no that comes from comfort or fear of change. Only a choice you'd make freely holds up.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is more than a job decision. It's a turning point, and the real question is how you meet it. Death and the Devil pull against each other: one says let the old chapter go, the other warns against grabbing the new one for the wrong reasons. The 8 of Pentacles matters least here. The work itself isn't really what's stopping you.\n\n**What it asks of you**\n- Death asks you to name exactly what you'd be losing, in writing. Grief you've named is easier to weigh than a vague sense that something's off.\n- The Devil asks you to list your reasons for each option and mark any that are really \"should,\" \"fear,\" or \"comfort.\" Look at what's left.\n\nThe decision is yours. If you could set aside what anyone else expects, which option would you choose?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What the move asks of you",
+                        "What's behind the hesitation",
+                        "What matters most in choosing"
+                      ],
+                      "label": "Three-Card Spread"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What the move asks of you",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What's behind the hesitation",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What matters most in choosing",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:48:26+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14181,
+        "output_tokens": 1605,
+        "estimated_cost_usd": 0.0888,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "pass",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": true,
+              "detail": "each reading opens with a lean naming a drawn card"
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 240
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7258,
+              "output_tokens": 1365
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "I drew three cards on what the role asks of you. Two of them are Major Arcana: **Death** and **The Devil**. That tells me this is less about whether you can do the job and more about what you'd have to let go of, and what might be pushing your decision. The reading doesn't push you toward yes or no. It says to find out whether you'd be choosing freely before you choose at all.\n\n**What stepping up asks of you \u2014 8 of Pentacles (upright)**\nThe card shows a craftsman carving coin after coin. It means learning by steady, patient practice. Leading a team would mean starting a new skill from scratch. It also means stepping back from the hands-on work you're probably good at now. Expect to be a beginner again for a while.\n\n**What your hesitation is protecting \u2014 Death (upright)**\nDeath means a real ending, not a literal one. Your hesitation is guarding a life that this move would close: your current role, your routines, maybe your sense of who you are at work. Your unease isn't just nerves. You can see that something real would end, and that's worth respecting rather than talking yourself out of.\n\n**What matters most in deciding \u2014 The Devil (upright)**\nThe Devil is about being tied down by something, though in the image the chains are loose enough to slip off. Before you decide, ask what's tugging at you. It could be not wanting to let Priya down, the pull of the title, or the comfort of staying where you are. Any of those can steer you without you noticing.\n\n**How they fit**\nWith two Major Arcana out of three, this is a major crossroads, not just a career step. The 8 of Pentacles matters least. Learning to lead is something you can work at. Death and The Devil are what carry the decision.\n\n**What it asks of you**\n- **From The Devil:** write down what you'd choose if nobody would be disappointed either way. Compare that with the answer you'd give Priya tomorrow.\n- **From Death:** list what actually ends if you go to Lisbon, and what ends if you stay. Turning down an offer like this closes a chapter too.\n\nOne question that would sharpen things: is it Lisbon you're unsure about, or leading a team?",
+                "final_text": "I drew three cards on what the role asks of you. Two of them are Major Arcana: **Death** and **The Devil**. That tells me this is less about whether you can do the job and more about what you'd have to let go of, and what might be pushing your decision. The reading doesn't push you toward yes or no. It says to find out whether you'd be choosing freely before you choose at all.\n\n**What stepping up asks of you \u2014 8 of Pentacles (upright)**\nThe card shows a craftsman carving coin after coin. It means learning by steady, patient practice. Leading a team would mean starting a new skill from scratch. It also means stepping back from the hands-on work you're probably good at now. Expect to be a beginner again for a while.\n\n**What your hesitation is protecting \u2014 Death (upright)**\nDeath means a real ending, not a literal one. Your hesitation is guarding a life that this move would close: your current role, your routines, maybe your sense of who you are at work. Your unease isn't just nerves. You can see that something real would end, and that's worth respecting rather than talking yourself out of.\n\n**What matters most in deciding \u2014 The Devil (upright)**\nThe Devil is about being tied down by something, though in the image the chains are loose enough to slip off. Before you decide, ask what's tugging at you. It could be not wanting to let Priya down, the pull of the title, or the comfort of staying where you are. Any of those can steer you without you noticing.\n\n**How they fit**\nWith two Major Arcana out of three, this is a major crossroads, not just a career step. The 8 of Pentacles matters least. Learning to lead is something you can work at. Death and The Devil are what carry the decision.\n\n**What it asks of you**\n- **From The Devil:** write down what you'd choose if nobody would be disappointed either way. Compare that with the answer you'd give Priya tomorrow.\n- **From Death:** list what actually ends if you go to Lisbon, and what ends if you stay. Turning down an offer like this closes a chapter too.\n\nOne question that would sharpen things: is it Lisbon you're unsure about, or leading a team?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What stepping up asks of you",
+                        "What your hesitation is protecting",
+                        "What matters most in deciding"
+                      ],
+                      "label": "Three-Card Custom Spread"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What stepping up asks of you",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What your hesitation is protecting",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What matters most in deciding",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:48:43+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14158,
+        "output_tokens": 1176,
+        "estimated_cost_usd": 0.0802,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "pass",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": true,
+              "detail": "each reading opens with a lean naming a drawn card"
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 225
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7235,
+              "output_tokens": 951
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "The move itself looks manageable. What makes this hard is that you'd have to let a whole chapter end. The **Eight of Pentacles** says the role asks for steady, learnable work. **Death** says your hesitation is about what you'd leave behind. **The Devil** says you choose well by being honest about what's tying you down, whether that pulls you toward Lisbon or keeps you where you are.\n\n**What the move asks of you: Eight of Pentacles (upright)**\nThis card shows a craftsman working one coin after another. Leading a team is a new skill, and it gets built through repetition. You don't need to arrive already good at it. The role asks you to be willing to be a beginner again.\n\n**What your hesitation protects: Death (upright)**\nDeath here means an ending, not a disaster. Some part of you is guarding the life you have now: your routines, your people, the version of you that does well in your current job. Saying yes means letting that chapter close, and the hesitation makes sense because the loss is real.\n\n**What helps you choose well: The Devil (upright)**\nThe Devil shows chains that are loose enough to slip off. Before you decide, name what is really driving you. Is it comfort, fear of change, guilt about saying no to your manager, or the pull of status? A choice made from any of those will feel heavy, whichever way you go.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is more than a career step. It touches who you are and what you're attached to. The Eight of Pentacles matters least here. It mainly tells you the role is within your reach, which may not be your real doubt.\n\n**What it asks of you**\n- **From the Devil:** Make two lists, \"staying because I want to\" and \"staying because I'm afraid to leave.\" Then make the same two lists for going. Whichever option has the most honest \"want to\" list is worth listening to.\n- **From the Eight of Pentacles:** Ask what the first six months of the job would actually involve, so you're picturing the real work and not just the move.\n\nThe decision is yours. One question would sharpen this reading: is your hesitation more about the job or about leaving where you live now?",
+                "final_text": "The move itself looks manageable. What makes this hard is that you'd have to let a whole chapter end. The **Eight of Pentacles** says the role asks for steady, learnable work. **Death** says your hesitation is about what you'd leave behind. **The Devil** says you choose well by being honest about what's tying you down, whether that pulls you toward Lisbon or keeps you where you are.\n\n**What the move asks of you: Eight of Pentacles (upright)**\nThis card shows a craftsman working one coin after another. Leading a team is a new skill, and it gets built through repetition. You don't need to arrive already good at it. The role asks you to be willing to be a beginner again.\n\n**What your hesitation protects: Death (upright)**\nDeath here means an ending, not a disaster. Some part of you is guarding the life you have now: your routines, your people, the version of you that does well in your current job. Saying yes means letting that chapter close, and the hesitation makes sense because the loss is real.\n\n**What helps you choose well: The Devil (upright)**\nThe Devil shows chains that are loose enough to slip off. Before you decide, name what is really driving you. Is it comfort, fear of change, guilt about saying no to your manager, or the pull of status? A choice made from any of those will feel heavy, whichever way you go.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is more than a career step. It touches who you are and what you're attached to. The Eight of Pentacles matters least here. It mainly tells you the role is within your reach, which may not be your real doubt.\n\n**What it asks of you**\n- **From the Devil:** Make two lists, \"staying because I want to\" and \"staying because I'm afraid to leave.\" Then make the same two lists for going. Whichever option has the most honest \"want to\" list is worth listening to.\n- **From the Eight of Pentacles:** Ask what the first six months of the job would actually involve, so you're picturing the real work and not just the move.\n\nThe decision is yours. One question would sharpen this reading: is your hesitation more about the job or about leaving where you live now?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What the move asks of you",
+                        "What your hesitation protects",
+                        "What helps you choose well"
+                      ],
+                      "label": "Three-Card Spread"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What the move asks of you",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What your hesitation protects",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What helps you choose well",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:49:00+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14184,
+        "output_tokens": 1237,
+        "estimated_cost_usd": 0.0815,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "pass",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": true,
+              "detail": "each reading opens with a lean naming a drawn card"
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 248
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7261,
+              "output_tokens": 989
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "I drew a three-card spread for you. On balance, the cards say the job itself isn't the real problem. The **Eight of Pentacles** shows you can grow into the work. What makes you hesitate is the ending this move means (**Death**). And the **Devil** says the choice comes down to whether you'd be choosing freely or because you feel tied to something.\n\n**What stepping up asks of you \u2014 Eight of Pentacles (upright)**\nThis card shows someone working steadily at a bench, learning a trade one piece at a time. The role asks you to treat leading as a new skill you practise, not something you should already be good at. Read this way, the card says you can learn it.\n\n**What's making you hesitate \u2014 Death (upright)**\nThis card is about something ending, not anything literal. Saying yes means a whole chapter closes: your current team, your routines, maybe the place you live and the people around you. Your doubt may have less to do with the role and more to do with grieving what you'd leave behind. That's a real cost, and it makes sense to feel it.\n\n**What matters most in choosing \u2014 The Devil (upright)**\nIn this card, the chains around the figures' necks are loose. They could take them off. The question to ask yourself is: what is holding me in place? It could be comfort and fear keeping you where you are. Or it could be a sense that you owe Priya a yes, or that you need the title. Either way, the right choice is the one you make without those chains.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is a bigger turning point than a job title. The Eight of Pentacles matters least here. Whether you could do the work isn't really in doubt.\n\n**What it asks of you**\n- **Death:** Write down exactly what this move would end. Then grieve those things on purpose, so the loss doesn't make the decision for you.\n- **The Devil:** Ask yourself honestly: \"If nobody would be disappointed and nothing were at stake, what would I choose?\" Compare that answer with the one you were leaning toward.\n\nThe decision is yours. One question would sharpen this reading: is your hesitation more about leaving where you are, or about what being a lead would ask of you?",
+                "final_text": "I drew a three-card spread for you. On balance, the cards say the job itself isn't the real problem. The **Eight of Pentacles** shows you can grow into the work. What makes you hesitate is the ending this move means (**Death**). And the **Devil** says the choice comes down to whether you'd be choosing freely or because you feel tied to something.\n\n**What stepping up asks of you \u2014 Eight of Pentacles (upright)**\nThis card shows someone working steadily at a bench, learning a trade one piece at a time. The role asks you to treat leading as a new skill you practise, not something you should already be good at. Read this way, the card says you can learn it.\n\n**What's making you hesitate \u2014 Death (upright)**\nThis card is about something ending, not anything literal. Saying yes means a whole chapter closes: your current team, your routines, maybe the place you live and the people around you. Your doubt may have less to do with the role and more to do with grieving what you'd leave behind. That's a real cost, and it makes sense to feel it.\n\n**What matters most in choosing \u2014 The Devil (upright)**\nIn this card, the chains around the figures' necks are loose. They could take them off. The question to ask yourself is: what is holding me in place? It could be comfort and fear keeping you where you are. Or it could be a sense that you owe Priya a yes, or that you need the title. Either way, the right choice is the one you make without those chains.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is a bigger turning point than a job title. The Eight of Pentacles matters least here. Whether you could do the work isn't really in doubt.\n\n**What it asks of you**\n- **Death:** Write down exactly what this move would end. Then grieve those things on purpose, so the loss doesn't make the decision for you.\n- **The Devil:** Ask yourself honestly: \"If nobody would be disappointed and nothing were at stake, what would I choose?\" Compare that answer with the one you were leaning toward.\n\nThe decision is yours. One question would sharpen this reading: is your hesitation more about leaving where you are, or about what being a lead would ask of you?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What stepping up asks of you",
+                        "What's making you hesitate",
+                        "What matters most in choosing"
+                      ],
+                      "label": "Three-Card Spread"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What stepping up asks of you",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What's making you hesitate",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What matters most in choosing",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:49:21+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14197,
+        "output_tokens": 1513,
+        "estimated_cost_usd": 0.087,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "pass",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": true,
+              "detail": "each reading opens with a lean naming a drawn card"
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 258
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7274,
+              "output_tokens": 1255
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "The move itself asks for something steady and learnable: patient, hands-on skill-building (Eight of Pentacles). The heavier cards are about you rather than the job. Your hesitation comes from a real ending (Death), and the role carries a risk of becoming a gilded trap (The Devil). On balance the cards don't steer you away from the offer. They ask you to be honest about *why* you'd say yes.\n\n**What the move asks of you \u2014 Eight of Pentacles (upright)**\nThis is the apprentice at his bench, cutting one coin after another. Leading a team would mean starting over at a new craft. You'd be learning to lead without already knowing how, and putting in steady, unglamorous practice. It asks for humility and repetition more than talent.\n\n**What sits beneath your hesitation \u2014 Death (upright)**\nThis doesn't mean danger. It means that saying yes ends a chapter, and part of you feels that. Moving to another city and taking on a new role closes off a version of your life and work: your current place, your peer relationships, maybe how you see yourself as an individual contributor. Your uncertainty may be grief that hasn't been named yet, not a sign that the role is wrong.\n\n**What stepping up would grow in you \u2014 The Devil (upright)**\nThis is the hardest card in the spread, and I won't soften it. The Devil shows two figures with loose chains around their necks, chains they could lift off. Taken for the wrong reasons, this role could grow attachment: to status, to being needed, to a promotion you feel you can't turn down. The cards are warning about a yes that comes from obligation or ego.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is a real life turning point, not just a job decision. The tension between the Eight and The Devil is the point. Doing the role for the craft is healthy. Doing it for the title or out of loyalty to your manager is a chain. The Eight of Pentacles matters least here. It tells you the work can be learned, but it isn't what's making the choice hard.\n\n**What it asks of you**\n- **From Death:** Write down what you'd be leaving behind, and let yourself feel it before you decide.\n- **From The Devil:** Ask yourself, \"If no one would be disappointed, would I still want this?\" Your answer matters more than the offer does.\n\nThe choice is yours. Is it the place, the role, or the timing that makes you unsure?",
+                "final_text": "The move itself asks for something steady and learnable: patient, hands-on skill-building (Eight of Pentacles). The heavier cards are about you rather than the job. Your hesitation comes from a real ending (Death), and the role carries a risk of becoming a gilded trap (The Devil). On balance the cards don't steer you away from the offer. They ask you to be honest about *why* you'd say yes.\n\n**What the move asks of you \u2014 Eight of Pentacles (upright)**\nThis is the apprentice at his bench, cutting one coin after another. Leading a team would mean starting over at a new craft. You'd be learning to lead without already knowing how, and putting in steady, unglamorous practice. It asks for humility and repetition more than talent.\n\n**What sits beneath your hesitation \u2014 Death (upright)**\nThis doesn't mean danger. It means that saying yes ends a chapter, and part of you feels that. Moving to another city and taking on a new role closes off a version of your life and work: your current place, your peer relationships, maybe how you see yourself as an individual contributor. Your uncertainty may be grief that hasn't been named yet, not a sign that the role is wrong.\n\n**What stepping up would grow in you \u2014 The Devil (upright)**\nThis is the hardest card in the spread, and I won't soften it. The Devil shows two figures with loose chains around their necks, chains they could lift off. Taken for the wrong reasons, this role could grow attachment: to status, to being needed, to a promotion you feel you can't turn down. The cards are warning about a yes that comes from obligation or ego.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is a real life turning point, not just a job decision. The tension between the Eight and The Devil is the point. Doing the role for the craft is healthy. Doing it for the title or out of loyalty to your manager is a chain. The Eight of Pentacles matters least here. It tells you the work can be learned, but it isn't what's making the choice hard.\n\n**What it asks of you**\n- **From Death:** Write down what you'd be leaving behind, and let yourself feel it before you decide.\n- **From The Devil:** Ask yourself, \"If no one would be disappointed, would I still want this?\" Your answer matters more than the offer does.\n\nThe choice is yours. Is it the place, the role, or the timing that makes you unsure?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What the move asks of you",
+                        "What sits beneath your hesitation",
+                        "What stepping up would grow in you"
+                      ],
+                      "label": "Three-Card Reading"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What the move asks of you",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What sits beneath your hesitation",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What stepping up would grow in you",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:49:37+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 1,
+        "failed": 0,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14140,
+        "output_tokens": 1093,
+        "estimated_cost_usd": 0.0784,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "pass",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": true,
+              "detail": "each reading opens with a lean naming a drawn card"
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 204
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7217,
+              "output_tokens": 889
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "Your cards point to a real ending. **Death** says taking this role means closing a chapter, not just changing desks. **The Devil** says your hesitation may come less from good judgement and more from a comfort or attachment that's quietly holding you in place. **The Eight of Pentacles** says the work itself is learnable. The bigger question is what you're willing to let go of.\n\n**What stepping up asks of you \u2014 Eight of Pentacles (upright)**\nThis is the apprentice at his bench, carving one coin after another. Leading a team asks you to practise steadily, not to be ready on day one. You'd be learning a new craft, and this card says you're able to.\n\n**What the move would cost \u2014 Death (upright)**\nThis doesn't mean disaster. It means a clean ending. Your current role, your routines and possibly the version of yourself who doesn't lead would all close. Death doesn't soften that, but it also clears the ground for what comes next. The real cost is grief for what you'd leave, not failure.\n\n**What your hesitation is guarding \u2014 The Devil (upright)**\nThe Devil's chains hang loose: the figures could lift them off, but they stay. Your reluctance seems to protect something familiar, maybe a comfortable role, a place, an identity or a fear of being seen as in charge. It feels safe, but the card asks you to check whether it's actually keeping you small.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is more than a career step. It touches who you are. The tension sits between Death and the Devil: one says let go, the other shows what you're clinging to. The Eight of Pentacles matters least here. Your ability isn't the issue. Your attachment is.\n\n**What it asks of you**\nThis reading doesn't tell you to say yes. It tells you to get clear about why you might say no. Two moves:\n- **The Devil:** Write down exactly what you'd be protecting by turning this down. Then mark each item as either a real value or just something familiar.\n- **Death:** Name what you'd be sad to leave, and let yourself feel it. Grief you've faced makes the decision clearer, whichever way you go.\n\nThe decision is yours. If you'd like more precision: when you picture saying no, is the main feeling relief or regret?",
+                "final_text": "Your cards point to a real ending. **Death** says taking this role means closing a chapter, not just changing desks. **The Devil** says your hesitation may come less from good judgement and more from a comfort or attachment that's quietly holding you in place. **The Eight of Pentacles** says the work itself is learnable. The bigger question is what you're willing to let go of.\n\n**What stepping up asks of you \u2014 Eight of Pentacles (upright)**\nThis is the apprentice at his bench, carving one coin after another. Leading a team asks you to practise steadily, not to be ready on day one. You'd be learning a new craft, and this card says you're able to.\n\n**What the move would cost \u2014 Death (upright)**\nThis doesn't mean disaster. It means a clean ending. Your current role, your routines and possibly the version of yourself who doesn't lead would all close. Death doesn't soften that, but it also clears the ground for what comes next. The real cost is grief for what you'd leave, not failure.\n\n**What your hesitation is guarding \u2014 The Devil (upright)**\nThe Devil's chains hang loose: the figures could lift them off, but they stay. Your reluctance seems to protect something familiar, maybe a comfortable role, a place, an identity or a fear of being seen as in charge. It feels safe, but the card asks you to check whether it's actually keeping you small.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is more than a career step. It touches who you are. The tension sits between Death and the Devil: one says let go, the other shows what you're clinging to. The Eight of Pentacles matters least here. Your ability isn't the issue. Your attachment is.\n\n**What it asks of you**\nThis reading doesn't tell you to say yes. It tells you to get clear about why you might say no. Two moves:\n- **The Devil:** Write down exactly what you'd be protecting by turning this down. Then mark each item as either a real value or just something familiar.\n- **Death:** Name what you'd be sad to leave, and let yourself feel it. Grief you've faced makes the decision clearer, whichever way you go.\n\nThe decision is yours. If you'd like more precision: when you picture saying no, is the main feeling relief or regret?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What stepping up asks of you",
+                        "What the move would cost",
+                        "What your hesitation is guarding"
+                      ],
+                      "label": "Three-Card Spread"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What stepping up asks of you",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What the move would cost",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What your hesitation is guarding",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-5-5",
+      "effort": "medium",
+      "seed": "1",
+      "finished_at": "2026-10-28T07:49:57+00:00",
+      "summary": {
+        "cases": 1,
+        "passed": 0,
+        "failed": 1,
+        "errors": 0,
+        "api_calls": 2,
+        "input_tokens": 14181,
+        "output_tokens": 1532,
+        "estimated_cost_usd": 0.0874,
+        "models_used": [
+          "claude-opus-5-5"
+        ]
+      },
+      "cases": [
+        {
+          "id": "custom-reading-private",
+          "behaviour": "Draws once for a custom reading, keeping names and places out of the call.",
+          "status": "fail",
+          "error": null,
+          "checks": [
+            {
+              "name": "draw_count",
+              "passed": true,
+              "detail": "draws per turn [1], expected [1]"
+            },
+            {
+              "name": "only_returned_cards",
+              "passed": true,
+              "detail": "every card named came from a draw or the user"
+            },
+            {
+              "name": "cards_named_with_orientation",
+              "passed": true,
+              "detail": "every drawn card named with its orientation"
+            },
+            {
+              "name": "lean_first",
+              "passed": false,
+              "detail": "turn 1 opening says no direction: 'Taking this role would mean saying goodbye to a big part of the life you have no'"
+            },
+            {
+              "name": "no_dates_or_events",
+              "passed": true,
+              "detail": "no dates, timings or predicted events found"
+            },
+            {
+              "name": "private_details_out",
+              "passed": true,
+              "detail": "no private details or questions in positions or label"
+            }
+          ],
+          "api_calls": [
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 6923,
+              "output_tokens": 244
+            },
+            {
+              "model": "claude-opus-5-5",
+              "input_tokens": 7258,
+              "output_tokens": 1288
+            }
+          ],
+          "transcript": {
+            "case_id": "custom-reading-private",
+            "turns": [
+              {
+                "user": "My manager Priya just offered me a team-lead role in our Lisbon office, and I'm not sure I want it. Can you draw three cards on what this move asks of me?",
+                "text": "Taking this role would mean saying goodbye to a big part of the life you have now, and the cards say that ending is what's really behind your hesitation. They also warn that the move could tie you down if you say yes for the wrong reasons. Death and the Devil carry most of this reading. It leaves the decision open, but it asks one thing of you: whatever you choose, be clear about why.\n\n**What the move asks of you: Eight of Pentacles (upright)**\nThis is the card of the apprentice at the workbench, doing the same careful work again and again. Leading a team is a new skill, not a reward for the old ones. The move asks you to be a beginner again and to learn leadership slowly, in a new city, while people watch.\n\n**What's behind the hesitation: Death (upright)**\nDeath means an ending, not a disaster. You're not mainly unsure about the job. You're grieving what it would close: your current role, your routines and maybe the people around you. Your hesitation is an honest sense of how much would end.\n\n**What stepping up would grow in you: The Devil (upright)**\nThis is the hardest card here. The Devil stands for attachment: to a title, to pay, to a boss's approval, to a sense of duty. In this spot, it warns that the role could grow your ambition into something that controls you. That's most likely if you accept because saying no to your manager feels impossible, or because the promotion seems like what you're supposed to want.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is more than a career step. It's a turning point, and the real choice is how you face it. The cards pull against each other: Death says let go of the old, and the Devil warns against taking on new chains. A move is only worth it if you're choosing freely. The Eight of Pentacles matters least here, since the work involved is something you can handle.\n\n**What it asks of you**\n- **Thinking of the Devil:** write down your real reasons for saying yes. If most of them are about approval, duty or status, you've found the chain.\n- **Thinking of the Eight of Pentacles:** before you decide, find out what the daily work actually looks like. Talk to someone who leads a team there now.\n\nWhat would you miss most if you left?",
+                "final_text": "Taking this role would mean saying goodbye to a big part of the life you have now, and the cards say that ending is what's really behind your hesitation. They also warn that the move could tie you down if you say yes for the wrong reasons. Death and the Devil carry most of this reading. It leaves the decision open, but it asks one thing of you: whatever you choose, be clear about why.\n\n**What the move asks of you: Eight of Pentacles (upright)**\nThis is the card of the apprentice at the workbench, doing the same careful work again and again. Leading a team is a new skill, not a reward for the old ones. The move asks you to be a beginner again and to learn leadership slowly, in a new city, while people watch.\n\n**What's behind the hesitation: Death (upright)**\nDeath means an ending, not a disaster. You're not mainly unsure about the job. You're grieving what it would close: your current role, your routines and maybe the people around you. Your hesitation is an honest sense of how much would end.\n\n**What stepping up would grow in you: The Devil (upright)**\nThis is the hardest card here. The Devil stands for attachment: to a title, to pay, to a boss's approval, to a sense of duty. In this spot, it warns that the role could grow your ambition into something that controls you. That's most likely if you accept because saying no to your manager feels impossible, or because the promotion seems like what you're supposed to want.\n\n**How they fit**\nTwo of the three cards are Major Arcana, so this is more than a career step. It's a turning point, and the real choice is how you face it. The cards pull against each other: Death says let go of the old, and the Devil warns against taking on new chains. A move is only worth it if you're choosing freely. The Eight of Pentacles matters least here, since the work involved is something you can handle.\n\n**What it asks of you**\n- **Thinking of the Devil:** write down your real reasons for saying yes. If most of them are about approval, duty or status, you've found the chain.\n- **Thinking of the Eight of Pentacles:** before you decide, find out what the daily work actually looks like. Talk to someone who leads a team there now.\n\nWhat would you miss most if you left?",
+                "tool_calls": [
+                  {
+                    "input": {
+                      "positions": [
+                        "What the move asks of you",
+                        "What's behind the hesitation",
+                        "What stepping up would grow in you"
+                      ],
+                      "label": "Three-Card Spread"
+                    },
+                    "is_error": false,
+                    "draws": [
+                      {
+                        "position": "What the move asks of you",
+                        "card": "8 of Pentacles",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What's behind the hesitation",
+                        "card": "Death",
+                        "orientation": "upright"
+                      },
+                      {
+                        "position": "What stepping up would grow in you",
+                        "card": "The Devil",
+                        "orientation": "upright"
+                      }
+                    ]
+                  }
+                ],
+                "stop_reason": "end_turn"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
