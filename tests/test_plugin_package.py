@@ -74,3 +74,55 @@ def test_license_is_declared():
     data = json.loads((REPO_ROOT / "plugin" / "plugin.json").read_text(encoding="utf-8"))
     assert data["license"] == "MIT"
     assert (REPO_ROOT / "LICENSE").read_text(encoding="utf-8").startswith("MIT License")
+
+
+# Claude package: .claude-plugin/plugin.json and .mcp.json beside the ChatGPT files
+
+
+def _load(*parts: str) -> dict:
+    return json.loads((REPO_ROOT.joinpath(*parts)).read_text(encoding="utf-8"))
+
+
+def test_claude_manifest_matches_the_portable_one():
+    claude = _load("plugin", ".claude-plugin", "plugin.json")
+    portable = _load("plugin", "plugin.json")
+    for key in ("name", "version", "description", "license", "homepage", "repository"):
+        assert claude[key] == portable[key]
+    assert claude["displayName"] == "Tarot Reader"
+    for key in ("documentationUrl", "privacyPolicyUrl"):
+        assert claude[key].startswith("https://github.com/StephanRyatt/tarot-reader")
+
+
+def test_claude_icon_is_an_svg_inside_the_plugin():
+    icon = _load("plugin", ".claude-plugin", "plugin.json")["icon"]
+    path = (REPO_ROOT / "plugin" / icon).resolve()
+    assert path.is_relative_to(REPO_ROOT / "plugin")
+    assert path.suffix == ".svg"
+    assert path.read_text(encoding="utf-8").startswith("<svg")
+
+
+def test_claude_mcp_json_uses_http_and_the_same_server():
+    claude = _load("plugin", ".mcp.json")["mcpServers"]["tarot-reader"]
+    portable = _load("plugin", "mcp.json")["mcpServers"]["tarot-reader"]
+    assert claude == {"type": "http", "url": portable["url"]}
+
+
+def test_marketplace_lists_the_plugin_by_its_manifest_name():
+    market = _load(".claude-plugin", "marketplace.json")
+    assert market["owner"]["name"]
+    [entry] = market["plugins"]
+    assert entry["name"] == _load("plugin", ".claude-plugin", "plugin.json")["name"]
+    assert not entry["source"].startswith("..")
+    assert (REPO_ROOT / entry["source"] / ".claude-plugin" / "plugin.json").is_file()
+
+
+def test_plugin_readme_meets_the_directory_minimum():
+    text = (REPO_ROOT / "plugin" / "README.md").read_text(encoding="utf-8")
+    assert len(re.sub(r"```.*?```", "", text, flags=re.S).split()) >= 40
+    assert "## Data" in text
+
+
+def test_privacy_policy_exists_where_the_manifest_points():
+    url = _load("plugin", ".claude-plugin", "plugin.json")["privacyPolicyUrl"]
+    assert url.endswith("/blob/main/docs/PRIVACY.md")
+    assert (REPO_ROOT / "docs" / "PRIVACY.md").is_file()

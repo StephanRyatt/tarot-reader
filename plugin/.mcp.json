@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "tarot-reader": {
+      "type": "http",
+      "url": "https://tarot-reader-omega.vercel.app/mcp"
+    }
+  }
+}

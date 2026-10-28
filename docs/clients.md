@@ -6,8 +6,23 @@ The public instance is `https://tarot-reader-omega.vercel.app/mcp`. It needs no 
 
 ## Claude
 
-* **Claude Code:** `claude mcp add --transport http tarot-reader https://tarot-reader-omega.vercel.app/mcp`
-* **claude.ai:** Customize → Connectors → Add custom connector, paste the URL, and leave authentication off.
+The full product is the plugin: the server plus the counseling skill and the spread library. A connector on its own
+gives Claude the tool and its description, but not the skill.
+
+* **Plugin, claude.ai or Claude Desktop:** Customize → Plugins → Add → Add marketplace, and enter
+  `StephanRyatt/tarot-reader`. Then install Tarot Reader and connect its server on the plugin's **Connectors** tab;
+  it needs no authentication. Skills need **Code execution and file creation** on (Settings → Capabilities).
+* **Plugin, from a local copy:** zip the `plugin/` folder (`cd plugin && zip -r ../tarot-reader-plugin.zip .`) and
+  upload it under Customize → Plugins → Add → Upload plugin. Remove it before installing from the marketplace, so the
+  skill and tool aren't loaded twice.
+* **Plugin, Claude Code:** `/plugin marketplace add StephanRyatt/tarot-reader`, then
+  `/plugin install tarot-reader@tarot-reader`. A plugin installed on claude.ai also syncs to Claude Code.
+* **Connector only, Claude Code:** `claude mcp add --transport http tarot-reader https://tarot-reader-omega.vercel.app/mcp`
+* **Connector only, claude.ai:** Customize → Connectors → Add custom connector, paste the URL, and leave
+  authentication off. Don't add it as well as the plugin.
+
+The named spreads are MCP prompts. In claude.ai and Claude Desktop, pick one under "Add files, connectors, and more"
+→ Connectors → Tarot Reader. In Claude Code they are slash commands: type `/` and look for the Tarot Reader entries marked (MCP).
 
 ---
 
@@ -16,7 +31,7 @@ The public instance is `https://tarot-reader-omega.vercel.app/mcp`. It needs no 
 ChatGPT web **Add custom MCP server** uses only the live `/mcp` server (instructions + tool metadata). The `plugin/` skill is for Codex/desktop marketplace packaging, not the web custom-MCP flow.
 
 1. Use the public instance, or deploy your own and confirm `POST https://<project>.vercel.app/mcp` answers `initialize`.
-2. If you deploy your own, point `plugin/mcp.json` at your host instead of `https://tarot-reader-omega.vercel.app/mcp`.
+2. If you deploy your own, point `plugin/mcp.json` and `plugin/.mcp.json` at your host instead of `https://tarot-reader-omega.vercel.app/mcp`.
 3. In ChatGPT, go to Plugins → **+** → **Add custom MCP server**.
 4. Set the URL to `https://tarot-reader-omega.vercel.app/mcp` (or your own host), the name to "Tarot Reader", and Authentication to **None**.
 5. Accept the risk warning, then choose **Create as a plugin**.
@@ -30,7 +45,7 @@ To bundle the skill for ChatGPT after creating the custom MCP connection, use `@
 
 ## Codex and the ChatGPT desktop app
 
-`plugin/mcp.json` points at the public instance. If you deploy your own, change the URL there first.
+`plugin/mcp.json` (and `plugin/.mcp.json` for Claude) point at the public instance. If you deploy your own, change the URL in both first.
 
 For a bearer token, Codex `~/.codex/config.toml` can take (check against current Codex docs):
 

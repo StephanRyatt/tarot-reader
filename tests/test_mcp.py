@@ -13,6 +13,7 @@ from api.mcp import (
     INPUT_SCHEMA,
     MAX_BODY_BYTES,
     SERVER_INSTRUCTIONS,
+    SPREADS,
     TOOL_NAME,
     handle_http,
 )
@@ -59,6 +60,7 @@ def test_initialize_returns_server_info_and_instructions():
     result = payload["result"]
     assert result["protocolVersion"] == "2025-11-25"
     assert "tools" in result["capabilities"]
+    assert result["capabilities"]["prompts"] == {"listChanged": False}
     assert result["serverInfo"]["name"] == "tarot-reader"
     assert len(result["instructions"]) <= 512
     assert "draw_tarot_spread" in result["instructions"]
@@ -529,3 +531,48 @@ def test_socket_chunked_initialize(server):
 def test_socket_chunked_oversized_body_returns_413(server):
     status, _ = _post_chunked(server.port, [b"x" * 40_000, b"x" * 40_000])
     assert status == 413
+
+
+# Prompts: the spread library, offered in the client's own UI
+
+
+def test_prompts_list_offers_every_spread():
+    result = decode(call(rpc("prompts/list")))["result"]
+    names = [p["name"] for p in result["prompts"]]
+    assert names == [s.slug for s in SPREADS]
+    assert len(set(names)) == len(names)
+    for prompt, spread in zip(result["prompts"], SPREADS, strict=True):
+        assert prompt["title"] == spread.name
+        assert prompt["description"] == spread.purpose
+        assert "arguments" not in prompt  # nothing about the user is sent to the server
+
+
+@pytest.mark.parametrize("spread", SPREADS, ids=lambda s: s.slug)
+def test_prompts_get_returns_a_ready_to_send_request(spread):
+    result = decode(call(rpc("prompts/get", {"name": spread.slug})))["result"]
+    assert result["description"] == spread.purpose
+    [message] = result["messages"]
+    assert message["role"] == "user"
+    text = message["content"]["text"]
+    assert message["content"]["type"] == "text"
+    assert TOOL_NAME in text
+    assert json.dumps([name for name, _ in spread.positions]) in text
+    assert f'label: "{spread.name}"' in text
+    for name, meaning in spread.positions:
+        assert f"{name}: {meaning}" in text
+
+
+def test_decision_prompt_asks_for_the_options_first():
+    result = decode(call(rpc("prompts/get", {"name": "decision"})))["result"]
+    text = result["messages"][0]["content"]["text"]
+    assert "ask me which options" in text
+    assert "private details out" in text
+
+
+@pytest.mark.parametrize(
+    "params",
+    [None, [], {}, {"name": 7}, {"name": "tarot-of-doom"}],
+)
+def test_prompts_get_rejects_bad_params(params):
+    payload = decode(call(rpc("prompts/get", params)))
+    assert payload["error"]["code"] == -32602

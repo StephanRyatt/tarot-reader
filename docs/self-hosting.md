@@ -12,10 +12,14 @@ tarot-reader/
 ├─ api/
 │  ├─ tarot.py          # REST: POST /api/tarot
 │  └─ mcp.py            # MCP:  POST /api/mcp  (rewritten from /mcp)
-├─ plugin/                   # portable plugin package
-│  ├─ plugin.json
-│  ├─ mcp.json               # points at the public instance
-│  └─ skills/tarot-reading/SKILL.md
+├─ .claude-plugin/marketplace.json   # lets Claude install plugin/ from this repo
+├─ plugin/                   # plugin package for Claude, ChatGPT and Codex
+│  ├─ .claude-plugin/plugin.json     # Claude manifest
+│  ├─ .mcp.json              # Claude: points at the public instance (type http)
+│  ├─ plugin.json            # ChatGPT/Codex manifest
+│  ├─ mcp.json               # ChatGPT/Codex: same server (type streamable-http)
+│  ├─ README.md / icon.svg
+│  └─ skills/tarot-reading/  # SKILL.md and references/spreads.md
 ├─ tests/
 │  ├─ conftest.py           # clean env per test, throwaway local server
 │  ├─ test_logic.py         # engine: validation, invariants, fairness

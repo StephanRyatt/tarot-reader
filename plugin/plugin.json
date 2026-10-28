@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "tarot-reader",
-  "version": "1.0.0",
-  "description": "Draw real, randomized tarot spreads and get readings grounded in the cards actually drawn.",
+  "version": "1.1.0",
+  "description": "Tarot readings from real draws, read by an experienced counselor: a clear answer first, every claim tied to the cards actually drawn.",
   "author": { "name": "StephanRyatt", "url": "https://github.com/StephanRyatt" },
   "homepage": "https://github.com/StephanRyatt/tarot-reader",
   "repository": "https://github.com/StephanRyatt/tarot-reader",
@@ -12,15 +12,15 @@
     "com.openai": {
       "interface": {
         "displayName": "Tarot Reader",
-        "shortDescription": "Draw random tarot spreads and get grounded readings",
-        "longDescription": "Shuffles a full 78-card Rider-Waite deck with reversals, draws one real card per spread position, and guides the reading so it never invents cards.",
+        "shortDescription": "Clear tarot readings from real draws",
+        "longDescription": "Shuffles a full 78-card Rider-Waite deck with reversals and draws one real card per spread position. The reading opens with which way the cards lean, ties every claim to a card, and leaves the decision with you. It never invents cards.",
         "developerName": "StephanRyatt",
         "capabilities": ["Read"],
         "category": "Lifestyle",
         "defaultPrompt": [
-          "Do a three-card Past, Present, Future tarot reading for me.",
-          "Pull one tarot card for my day.",
-          "Do a Celtic Cross reading about my career."
+          "Pull the Daily Alignment spread for me.",
+          "Pull the Daily Focus spread for me.",
+          "Pull the Weekly Path spread for me."
         ]
       }
     }

@@ -57,9 +57,15 @@ Rules:
 
 * **Endpoint:** `POST https://<host>/mcp` (also `POST https://<host>/api/mcp`)
 * **Transport:** stateless Streamable HTTP, JSON-response mode (`Content-Type: application/json`)
-* **Supported methods:** `initialize`, `ping`, `tools/list`, `tools/call`
+* **Supported methods:** `initialize`, `ping`, `tools/list`, `tools/call`, `prompts/list`, `prompts/get`
 * **Protocol version:** default `2025-11-25`; echo `2025-06-18`, `2025-03-26`, or `2024-11-05` if the client asks for one of those; anything else falls back to `2025-11-25`
 * **Tool:** `draw_tarot_spread` — same input as the REST API (`positions`, optional `label`) and the same `draws` / `meta` output as `structuredContent`, plus a readable `content` text block in position order
+* **Prompts:** one per named spread (`card-of-the-day`, `daily-alignment`, `daily-focus`, `weekly-path`,
+  `weekly-evolution`, `past-present-future`, `decision`, `celtic-cross`). They take no arguments, so nothing about the
+  user reaches the server. `prompts/get` returns one user message that asks for that reading and gives the exact
+  positions, label and position meanings. Clients show them in their own UI: claude.ai and Claude Desktop under
+  "Add files, connectors, and more", Claude Code as slash commands. The same spreads ship in the plugin skill's
+  `references/spreads.md`, and a test keeps their positions, labels and meanings identical.
 
 ### Status codes
 

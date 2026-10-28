@@ -20,7 +20,8 @@ number in another.
 Treat the three as one product surface:
 
 * The rules live in all three: draw once per reading, never invent or change cards, and don't call the tool for
-  "what does this card mean?".
+  "what does this card mean?". [0006](0006-counselor-skill.md) adds one exception, also in all three: a single
+  clarifier card when the user asks for or accepts one.
 * Limits come from engine constants, which the input schema reads.
 * `tests/test_consistency.py` fails CI if the stated limit, the tool name or the core rules diverge, or if the
   plugin version and server version disagree.

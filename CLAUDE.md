@@ -9,7 +9,10 @@ draws one card per named position. Two interfaces share one engine, `draw_spread
 - `POST /mcp` (rewritten to `/api/mcp` by `vercel.json`): stateless Streamable HTTP MCP server with one tool,
   `draw_tarot_spread`. Handler in `api/mcp.py`.
 
-`plugin/` is a portable plugin package (`plugin.json`, `mcp.json`, a skill). `README.md` is the portfolio front page
+`plugin/` is the plugin package: `.claude-plugin/plugin.json` and `.mcp.json` (type `http`) for Claude, `plugin.json`
+and `mcp.json` (type `streamable-http`) for ChatGPT and Codex, and one skill with `references/spreads.md`.
+`.claude-plugin/marketplace.json` at the root makes the repo a Claude marketplace. `tests/test_plugin_package.py`
+keeps both manifests and both server files in step. `README.md` is the portfolio front page
 (pitch, Try it, architecture, decisions); keep reference material out of it. `docs/API.md` has the full contract and
 status codes, `docs/clients.md` the client connection steps, `docs/self-hosting.md` local testing and deployment, and
 `docs/decisions/` the decision records. Do not duplicate them here.
@@ -49,8 +52,12 @@ Vercel's Python runtime changes how it installs when one exists, so tool config 
 - **Dev server** (`dev_server.py`): `DevHandler` subclasses the REST `handler` and sends `/mcp` and `/api/mcp` to
   `serve_mcp`. Any other path, including `/`, hits the REST logic. This mimics Vercel's rewrites locally.
 - **Tool metadata is part of the product.** `SERVER_INSTRUCTIONS`, `TOOL_DEFINITION` and
-  `plugin/skills/tarot-reading/SKILL.md` tell the model never to invent cards and to draw exactly once per reading.
-  Keep the three consistent when changing one.
+  `plugin/skills/tarot-reading/SKILL.md` tell the model never to invent cards, to draw the spread once per reading,
+  and to draw at most one clarifier, only with the user's consent (ADR 0006). Keep the three consistent when changing
+  one. `SERVER_INSTRUCTIONS` must stay under 512 characters, so fuller guidance goes in the tool description and the
+  skill. Named spreads live in `SPREADS` in `api/mcp.py`, served as MCP prompts, and are mirrored in
+  `plugin/skills/tarot-reading/references/spreads.md`; `tests/test_consistency.py` fails if their positions,
+  labels or meanings differ.
 
 ## Rules
 
