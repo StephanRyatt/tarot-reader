@@ -9,8 +9,10 @@ draws one card per named position. Two interfaces share one engine, `draw_spread
 - `POST /mcp` (rewritten to `/api/mcp` by `vercel.json`): stateless Streamable HTTP MCP server with one tool,
   `draw_tarot_spread`. Handler in `api/mcp.py`.
 
-`plugin/` is a portable plugin package (`plugin.json`, `mcp.json`, a skill). `README.md` has the full API contract,
-status codes and ChatGPT/Codex connection steps; do not duplicate them here.
+`plugin/` is a portable plugin package (`plugin.json`, `mcp.json`, a skill). `README.md` is the portfolio front page
+(pitch, Try it, architecture, decisions); keep reference material out of it. `docs/API.md` has the full contract and
+status codes, `docs/clients.md` the client connection steps, `docs/self-hosting.md` local testing and deployment, and
+`docs/decisions/` the decision records. Do not duplicate them here.
 
 ## Commands
 
@@ -59,7 +61,7 @@ Vercel's Python runtime changes how it installs when one exists, so tool config 
   `.env.local` is gitignored. `TAROT_MCP_ALLOWED_ORIGINS` widens the `/mcp` Origin allowlist (default: no Origin
   or localhost only).
 - Limits (`MAX_POSITIONS`, `MAX_POSITION_LENGTH`, `MAX_LABEL_LENGTH`) live in `api/tarot.py`; the MCP input schema
-  reads them. `tests/test_consistency.py` checks the skill, instructions and README still agree.
+  reads them. `tests/test_consistency.py` checks the skill, instructions and `docs/API.md` still agree.
 - `tests/conftest.py` clears the `TAROT_*` env vars before every test and provides `live_server(HandlerClass)`.
 - `plugin/mcp.json` points at the public production instance, `https://tarot-reader-omega.vercel.app/mcp`, which runs with
   `TAROT_MCP_PUBLIC=1` behind a Vercel Firewall rate limit (60 requests/min per IP on `/mcp` and `/api/mcp`).
