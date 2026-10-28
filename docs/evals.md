@@ -14,6 +14,7 @@ current checks to the saved transcripts, so the two runs are compared on the sam
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | [1](../evals/reports/2026-10-28-claude-opus-5-5.json) | before the outcome rule | 11 / 11 | 9 / 11 | 52 / 54 | 165,348 / 15,424 | $0.97 |
 | [2](../evals/reports/2026-10-28-claude-opus-5-5-run2.json) | with the outcome rule | 9 / 11 | 10 / 11 | 53 / 54 | 168,750 / 14,979 | $0.97 |
+| [3](../evals/reports/2026-10-28-claude-opus-5-5-run3.json) | final (voice lines reworded) | 11 / 11 | 11 / 11 | 54 / 54 | 170,191 / 15,911 | $1.00 |
 
 **What changed between the runs.** Reading run 1 by hand showed that for "will" questions ("Will I meet someone
 special this year?", "Will my sister and I patch things up?") the model answered "on balance, it leans yes", which
