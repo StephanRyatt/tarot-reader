@@ -28,7 +28,8 @@ tarot-reader/
 │  ├─ test_dev_server.py    # local routing mirrors vercel.json
 │  ├─ test_consistency.py   # instructions, tool, skill and docs agree
 │  └─ test_plugin_package.py
-├─ docs/                     # API reference, clients, self-hosting, decisions
+├─ evals/                    # behaviour evals: cases, grading, live runner (docs/evals.md)
+├─ docs/                     # API reference, clients, self-hosting, evals, decisions
 ├─ dev_server.py             # local server that routes like vercel.json
 ├─ vercel.json               # rewrites only
 ├─ ruff.toml / mypy.ini     # lint, format and type-check config

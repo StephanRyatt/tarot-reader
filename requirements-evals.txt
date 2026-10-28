@@ -1,0 +1,2 @@
+# Live behaviour evals only (python -m evals). CI and the runtime never install this.
+anthropic==2.3.0
