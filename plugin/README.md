@@ -6,8 +6,8 @@ and deals one card per spread position, with a counseling skill that reads those
 ## Use it
 
 Ask for a reading in your own words, for example "Do a three-card reading about my week" or "Should I take the new
-job or stay?". Claude designs a spread for your question, draws it once, and opens with which way the cards lean,
-naming the cards behind every claim. The decision stays with you.
+job or stay?". The skill asks Claude to design a spread for your question, draw it once, and open with which way the cards lean,
+naming the cards behind each claim. The decision stays with you.
 
 Named spreads are built in: Card of the Day, Daily Alignment, Daily Focus, Weekly Path, Weekly Evolution, Past,
 Present, Future, Decision and Celtic Cross. In claude.ai and Claude Desktop you can also pick them from the

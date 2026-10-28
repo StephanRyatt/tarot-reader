@@ -28,7 +28,12 @@ pytest tests/test_http.py::test_invalid_json_returns_400   # one test by node id
 python dev_server.py                  # http://127.0.0.1:8000, MCP at /mcp
 ruff check . && ruff format --check . # lint and format (ruff.toml)
 mypy                                  # strict, on api/ and dev_server.py (mypy.ini)
+pip install -r requirements-evals.txt && python -m evals   # behaviour evals; needs ANTHROPIC_API_KEY, costs money
 ```
+
+`evals/` runs scripted conversations through a real model with the shipped skill and tool (`docs/evals.md`). Its
+grading is tested offline in `tests/test_evals_*.py`; the live run is never part of CI. When you change the skill or
+the tool text, check whether a case or check in `evals/` needs to change too.
 
 CI (`.github/workflows/ci.yml`) runs ruff, mypy and pytest with coverage (fails under 95%) on Python 3.12 for
 every push and PR. Deployment is Vercel, git-based; there is no build step. There is no `pyproject.toml` on purpose:

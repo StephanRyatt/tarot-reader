@@ -28,7 +28,7 @@ The named spreads are MCP prompts. In claude.ai and Claude Desktop, pick one und
 
 ## ChatGPT
 
-ChatGPT web **Add custom MCP server** uses only the live `/mcp` server (instructions + tool metadata). The `plugin/` skill is for Codex/desktop marketplace packaging, not the web custom-MCP flow.
+ChatGPT web **Add custom MCP server** uses only the live `/mcp` server (instructions + tool metadata), so ChatGPT gets the tool but not the counseling skill or the spread library. The `plugin/` skill is for Codex/desktop marketplace packaging, not the web custom-MCP flow.
 
 1. Use the public instance, or deploy your own and confirm `POST https://<project>.vercel.app/mcp` answers `initialize`.
 2. If you deploy your own, point `plugin/mcp.json` and `plugin/.mcp.json` at your host instead of `https://tarot-reader-omega.vercel.app/mcp`.
@@ -44,6 +44,8 @@ To bundle the skill for ChatGPT after creating the custom MCP connection, use `@
 ---
 
 ## Codex and the ChatGPT desktop app
+
+> These steps are documented but have not been tested end to end with the current release.
 
 `plugin/mcp.json` (and `plugin/.mcp.json` for Claude) point at the public instance. If you deploy your own, change the URL in both first.
 
