@@ -1,0 +1,14 @@
+{
+  "name": "tarot-reader",
+  "displayName": "Tarot Reader",
+  "version": "1.1.0",
+  "description": "Tarot readings from real draws, read by an experienced counselor: a clear answer first, every claim tied to the cards actually drawn.",
+  "author": { "name": "StephanRyatt", "url": "https://github.com/StephanRyatt" },
+  "homepage": "https://github.com/StephanRyatt/tarot-reader",
+  "repository": "https://github.com/StephanRyatt/tarot-reader",
+  "license": "MIT",
+  "keywords": ["tarot", "tarot-reading", "cards", "divination"],
+  "icon": "./icon.svg",
+  "documentationUrl": "https://github.com/StephanRyatt/tarot-reader#readme",
+  "privacyPolicyUrl": "https://github.com/StephanRyatt/tarot-reader/blob/main/docs/PRIVACY.md"
+}

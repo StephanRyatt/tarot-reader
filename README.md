@@ -10,7 +10,8 @@
 Ask a chat model to "draw three tarot cards" and it picks them itself. The cards come from what the model finds
 likely, not from a shuffle, and nothing in the conversation can show otherwise. Tarot Reader gives the model one
 tool, `draw_tarot_spread`, that shuffles a full 78-card Rider-Waite deck and deals one card per position. The
-tool's instructions tell the model to draw once and to interpret only the cards it was dealt.
+tool's instructions and a counseling skill tell the model to draw once, interpret only the cards it was dealt, and
+say plainly which way they lean.
 
 ---
 
@@ -18,8 +19,9 @@ tool's instructions tell the model to draw once and to interpret only the cards 
 
 A public instance runs at **`https://tarot-reader-omega.vercel.app/mcp`**. It needs no key and is rate-limited.
 
-* **Claude Code:** `claude mcp add --transport http tarot-reader https://tarot-reader-omega.vercel.app/mcp`
-* **claude.ai:** Customize → Connectors → Add custom connector, paste the URL, leave authentication off.
+* **Claude (claude.ai, Desktop, Claude Code):** add the plugin, which brings the counseling skill and the spreads:
+  Customize → Plugins → Add → Add marketplace → `StephanRyatt/tarot-reader`
+  ([steps](docs/clients.md#claude)).
 * **ChatGPT:** add it as a custom MCP server with Authentication set to **None** ([steps](docs/clients.md#chatgpt)).
 
 Then ask for a reading, for example "Do a three-card reading about my week."
@@ -54,8 +56,9 @@ flowchart LR
   serverless function. The handler runs a fixed, numbered sequence of checks, including the spec's `Origin` and
   `MCP-Protocol-Version` rules, before routing JSON-RPC.
 * **The tool's wording is part of the product.** The server instructions, tool description and the plugin skill
-  ([`SKILL.md`](plugin/skills/tarot-reading/SKILL.md)) all tell the model never to invent cards and to draw
-  exactly once per reading. [`test_consistency.py`](tests/test_consistency.py) keeps the three in step.
+  ([`SKILL.md`](plugin/skills/tarot-reading/SKILL.md)) all tell the model never to invent cards, to draw the spread
+  once per reading, and to add a clarifier only with the user's consent.
+  [`test_consistency.py`](tests/test_consistency.py) keeps the three in step.
 
 Full request and response details are in [docs/API.md](docs/API.md).
 
@@ -70,6 +73,7 @@ Full request and response details are in [docs/API.md](docs/API.md).
 | Standard library only at runtime | No dependency supply chain, fast cold starts, nothing to patch | [0003](docs/decisions/0003-stdlib-only-runtime.md) |
 | Tool metadata treated as product, tested | The model's behaviour depends on wording held in three places | [0004](docs/decisions/0004-tool-metadata-is-product.md) |
 | Freeze, then retire, the REST/GPT path | Custom GPTs retire on 11 Dec 2026 and Actions don't migrate | [0005](docs/decisions/0005-sunset-rest-endpoint.md) |
+| A counselor that leans, one clarifier on request | Hedged readings gave no decision support; consent keeps extra draws honest | [0006](docs/decisions/0006-counselor-skill.md) |
 
 ---
 
@@ -124,8 +128,9 @@ Client setup for ChatGPT, Claude and Codex: [docs/clients.md](docs/clients.md).
 
 ## Roadmap
 
-* **Behaviour evals:** scripted conversations that check the model draws exactly once, skips the tool when asked
-  what a named card means, and uses only the returned cards.
+* **Behaviour evals:** scripted conversations that check the model draws the spread once, skips the tool when asked
+  what a named card means, uses only the returned cards, names the cards behind its lean, and draws a clarifier only
+  with consent.
 * **Remove the REST endpoint** after Custom GPTs retire on 11 Dec 2026.
 
 ---

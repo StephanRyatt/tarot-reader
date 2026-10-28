@@ -12,10 +12,14 @@ tarot-reader/
 ├─ api/
 │  ├─ tarot.py          # REST: POST /api/tarot
 │  └─ mcp.py            # MCP:  POST /api/mcp  (rewritten from /mcp)
-├─ plugin/                   # portable plugin package
-│  ├─ plugin.json
-│  ├─ mcp.json               # points at the public instance
-│  └─ skills/tarot-reading/SKILL.md
+├─ .claude-plugin/marketplace.json   # lets Claude install plugin/ from this repo
+├─ plugin/                   # plugin package for Claude, ChatGPT and Codex
+│  ├─ .claude-plugin/plugin.json     # Claude manifest
+│  ├─ .mcp.json              # Claude: points at the public instance (type http)
+│  ├─ plugin.json            # ChatGPT/Codex manifest
+│  ├─ mcp.json               # ChatGPT/Codex: same server (type streamable-http)
+│  ├─ README.md / icon.svg
+│  └─ skills/tarot-reading/  # SKILL.md and references/spreads.md
 ├─ tests/
 │  ├─ conftest.py           # clean env per test, throwaway local server
 │  ├─ test_logic.py         # engine: validation, invariants, fairness
@@ -152,6 +156,19 @@ ngrok http 8000
 ```
 
 Then use `https://<id>.ngrok.app/mcp`.
+
+### 5) Test the plugin in claude.ai before merging
+
+Build a zip of `plugin/` into `dist/` (ignored by git):
+
+```bash
+mkdir -p dist && rm -f dist/tarot-reader-plugin.zip && (cd plugin && zip -r ../dist/tarot-reader-plugin.zip .)
+```
+
+Upload it under Customize → Plugins → Add → Upload plugin. The zip is a snapshot: rebuild it after any change to
+`plugin/`, remove the old plugin, and upload again. Remove it before installing from the marketplace, so the skill and
+tool aren't loaded twice. The skill comes from the zip, but the server is whatever is deployed, so server-side changes
+(tool text, prompts) show up only after they reach production.
 
 ---
 

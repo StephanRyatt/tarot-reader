@@ -1,0 +1,12 @@
+{
+  "name": "tarot-reader",
+  "description": "Tarot Reader: tarot readings from real draws, with a counseling skill.",
+  "owner": { "name": "StephanRyatt", "url": "https://github.com/StephanRyatt" },
+  "plugins": [
+    {
+      "name": "tarot-reader",
+      "source": "./plugin",
+      "description": "Tarot readings from real draws, read by an experienced counselor: a clear answer first, every claim tied to the cards actually drawn."
+    }
+  ]
+}

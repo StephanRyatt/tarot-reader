@@ -34,7 +34,7 @@ except ImportError:  # pragma: no cover - exercised in a subprocess by the tests
 
 SERVER_NAME = "tarot-reader"
 SERVER_TITLE = "Tarot Reader"
-SERVER_VERSION = "1.0.0"
+SERVER_VERSION = "1.1.0"
 LATEST_PROTOCOL_VERSION = "2025-11-25"
 SUPPORTED_PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")
 MAX_BODY_BYTES = 64 * 1024
@@ -54,13 +54,14 @@ PUBLIC_ENV_VAR = "TAROT_MCP_PUBLIC"
 ALLOWED_ORIGINS_ENV_VAR = "TAROT_MCP_ALLOWED_ORIGINS"
 LOCAL_HOSTNAMES = frozenset({"localhost", "127.0.0.1", "::1"})
 
+# Kept under 512 characters (tests/test_mcp.py); the skill and tool description carry the rest.
 SERVER_INSTRUCTIONS = (
     "Tarot Reader draws real, random cards from a shuffled 78-card Rider-Waite deck. "
-    "For any tarot reading or card draw, call draw_tarot_spread first, with one position "
-    'name per card (e.g. ["Past", "Present", "Future"]). Never invent, pick, or alter '
-    "cards or orientations: interpret only the cards returned, in position order, treating "
-    "reversed cards as reversed. Draw once per reading; redraw only if the user asks for a "
-    "new reading. Readings are for reflection, not medical, legal, or financial advice."
+    "To draw cards, call draw_tarot_spread first, one position per card; label is the "
+    "spread name only. Never invent or alter cards or orientations: interpret only the cards "
+    "returned, in order. Draw the spread once per reading; never redraw to change a result. "
+    "One clarifier card may follow only if the user asks for or accepts it. Lead with which "
+    "way the cards lean; no fixed fate or dates. Not medical, legal, or financial advice."
 )
 
 INPUT_SCHEMA = {
@@ -79,7 +80,10 @@ INPUT_SCHEMA = {
         },
         "label": {
             "type": "string",
-            "description": 'Optional spread name, e.g. "3-card" or "Celtic Cross".',
+            "description": (
+                'Optional spread name, e.g. "Daily Alignment" or "Celtic Cross". '
+                "Never the user's question or private details."
+            ),
             "maxLength": MAX_LABEL_LENGTH,
         },
     },
@@ -119,9 +123,15 @@ TOOL_DEFINITION = {
     "description": (
         "Use this when the user wants a tarot reading or wants cards pulled for a spread. "
         "Must NOT be used when the user names cards they already drew "
-        "or asks what a named card means. "
+        "(unless they ask you to pull a clarifier for them) or asks what a named card means. "
         "Shuffles a full 78-card Rider-Waite deck (with reversals) and draws one real random card "
-        "per named position. Call once per reading, then interpret only the returned cards."
+        "per named position. Keep the user's question and private details out of positions and "
+        "label. Call once per reading, then interpret only the returned cards. One more call, for "
+        "a single clarifier card, is allowed only when the user asks for or accepts one. "
+        "Open the reading with which way the cards lean, naming the cards that carry it; "
+        "describe direction and what it asks, never fixed fate, events or dates. "
+        "The decision stays with the user, and other people's feelings are read as likely "
+        "patterns, never verdicts."
     ),
     "inputSchema": INPUT_SCHEMA,
     "outputSchema": OUTPUT_SCHEMA,
@@ -134,6 +144,169 @@ TOOL_DEFINITION = {
     "securitySchemes": [{"type": "noauth"}],
     "_meta": {"securitySchemes": [{"type": "noauth"}]},
 }
+
+
+class Spread(NamedTuple):
+    """A named spread, served as an MCP prompt so clients can offer it in their own UI."""
+
+    slug: str
+    name: str
+    purpose: str
+    positions: tuple[tuple[str, str], ...]  # (position name, meaning), in reading order
+    note: str = ""
+
+
+# The spread library. plugin/skills/tarot-reading/references/spreads.md mirrors it, and
+# tests/test_consistency.py fails if the two drift apart.
+SPREADS = (
+    Spread(
+        "card-of-the-day",
+        "Card of the Day",
+        "For a single card that sets the tone of the day.",
+        (("Card of the Day", "The quality the day asks you to meet or embody."),),
+    ),
+    Spread(
+        "daily-alignment",
+        "Daily Alignment",
+        "To support grounded presence and conscious choice through the day.",
+        (
+            ("Day's Atmosphere", "The overall tone or quality shaping the day."),
+            ("Primary Focus", "What most deserves your attention or care today."),
+            ("Aligned Approach", "How to meet the day in a way that stays true to yourself."),
+        ),
+    ),
+    Spread(
+        "daily-focus",
+        "Daily Focus",
+        "For workdays or self-directed days, emphasising clarity, momentum and deliberate action.",
+        (
+            ("Core Focus", "The central theme to align with today."),
+            ("Mental Energy", "The mindset that best supports you today."),
+            ("Challenge / Distraction", "What could pull you off course or dilute your focus."),
+            ("Support / Ally", "A resource, strength or supportive condition available to you."),
+            ("Empowered Action", "One concrete action to take today, drawn from this card."),
+        ),
+    ),
+    Spread(
+        "weekly-path",
+        "Weekly Path",
+        "For practical clarity about the outer flow of the week: influences, challenges and "
+        "direction.",
+        (
+            ("Headline Energy", "The dominant outer atmosphere of the week."),
+            (
+                "Key Event / Influence",
+                "The kind of situation or influence likely to ask for your attention: a theme, "
+                "not a specific event.",
+            ),
+            ("Challenge", "The main tension or point of friction to work with."),
+            ("Best Response", "The choice, action or stance this week asks of you."),
+            (
+                "Trajectory",
+                "Where the week heads on its current course. It describes a direction you can "
+                "still shape, not a fixed outcome.",
+            ),
+        ),
+    ),
+    Spread(
+        "weekly-evolution",
+        "Weekly Evolution",
+        "For inner work: lessons, change and integration over the week.",
+        (
+            ("Core Vibration", "The underlying psychological theme shaping the week."),
+            (
+                "Shadow / Old Pattern",
+                "An inherited habit, belief or reaction that asks to be seen and released.",
+            ),
+            ("Soul Lesson", "The deeper teaching in the week's experiences."),
+            ("Practice / Embodiment", "A grounded practice or habit that supports integration."),
+            ("Emerging Self", "The quality or capacity coming into form."),
+        ),
+    ),
+    Spread(
+        "past-present-future",
+        "Past, Present, Future",
+        "The classic three-card spread.",
+        (
+            ("Past", "What led here and still shapes the situation."),
+            ("Present", "The heart of the situation now."),
+            ("Future", "Where this heads on its current course. A direction, not a fixed outcome."),
+        ),
+    ),
+    Spread(
+        "decision",
+        "Decision",
+        "For a choice between two options.",
+        (
+            ("Heart of the Matter", "What this choice is really about."),
+            (
+                "Option: <A>",
+                "What choosing A asks of you, and where it leads on its current course.",
+            ),
+            (
+                "Option: <B>",
+                "What choosing B asks of you, and where it leads on its current course.",
+            ),
+            ("What You're Not Seeing", "The factor missing from how you're weighing it."),
+            ("What Matters Most in Choosing", "The value or need that should decide it."),
+        ),
+        note=(
+            'Replace <A> and <B> with short names for the options, such as "Stay" and "Go". '
+            "Keep names, places and other private details out. For three or more options, add "
+            "one position per option."
+        ),
+    ),
+    Spread(
+        "celtic-cross",
+        "Celtic Cross",
+        "The traditional ten-card spread, for a full view of a complex situation.",
+        (
+            ("Present", "The heart of the situation now."),
+            ("Challenge", "What crosses it: the obstacle or tension."),
+            ("Foundation", "The root beneath the situation."),
+            ("Recent Past", "What is passing out of the situation."),
+            ("Crown", "The best that can be reached, or the conscious aim."),
+            ("Near Future", "What is coming into the situation next."),
+            ("Self", "How you stand in it."),
+            ("Environment", "The people and conditions around you."),
+            ("Hopes and Fears", "What you hope for and fear, often the same thing."),
+            (
+                "Where This Heads",
+                "Where the situation heads on its current course. A direction, not a fixed "
+                "outcome.",
+            ),
+        ),
+    ),
+)
+SPREADS_BY_SLUG = {spread.slug: spread for spread in SPREADS}
+
+
+def _prompt_definition(spread: Spread) -> dict[str, Any]:
+    return {"name": spread.slug, "title": spread.name, "description": spread.purpose}
+
+
+def _prompt_text(spread: Spread) -> str:
+    """The user message a client inserts when someone picks this spread from its UI."""
+    names = [name for name, _meaning in spread.positions]
+    lines = [f"Give me a {spread.name} tarot reading."]
+    if spread.slug == "decision":
+        lines.append(
+            "Before drawing, ask me which options I'm choosing between, unless I've already said."
+        )
+    lines += [
+        "",
+        f"Draw it once with {TOOL_NAME}, using these positions and label:",
+        f"- positions: {json.dumps(names)}",
+        f'- label: "{spread.name}"',
+    ]
+    if spread.note:
+        lines.append(spread.note)
+    lines += ["", "What each position means:"]
+    lines += [
+        f"{i}. {name}: {meaning}" for i, (name, meaning) in enumerate(spread.positions, start=1)
+    ]
+    return "\n".join(lines)
+
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -255,6 +428,21 @@ def _handle_tools_call(params: Any, rng: random.Random | None) -> dict[str, Any]
     }
 
 
+def _handle_prompts_get(params: Any) -> dict[str, Any]:
+    if not isinstance(params, dict):
+        raise _RpcError(INVALID_PARAMS, "params must be an object")
+    name = params.get("name")
+    if not isinstance(name, str):
+        raise _RpcError(INVALID_PARAMS, "params.name must be a string")
+    spread = SPREADS_BY_SLUG.get(name)
+    if spread is None:
+        raise _RpcError(INVALID_PARAMS, f"Unknown prompt: {name}")
+    return {
+        "description": spread.purpose,
+        "messages": [{"role": "user", "content": {"type": "text", "text": _prompt_text(spread)}}],
+    }
+
+
 def dispatch(message: dict[str, Any], *, rng: random.Random | None = None) -> dict[str, Any]:
     """Route one validated JSON-RPC request (it has an id) to its result or error."""
     req_id = message["id"]
@@ -266,7 +454,10 @@ def dispatch(message: dict[str, Any], *, rng: random.Random | None = None) -> di
                 params = {}
             result: dict[str, Any] = {
                 "protocolVersion": _negotiate_version(params.get("protocolVersion")),
-                "capabilities": {"tools": {"listChanged": False}},
+                "capabilities": {
+                    "tools": {"listChanged": False},
+                    "prompts": {"listChanged": False},
+                },
                 "serverInfo": {
                     "name": SERVER_NAME,
                     "title": SERVER_TITLE,
@@ -280,6 +471,10 @@ def dispatch(message: dict[str, Any], *, rng: random.Random | None = None) -> di
             result = {"tools": [TOOL_DEFINITION]}
         elif method == "tools/call":
             result = _handle_tools_call(message.get("params"), rng)
+        elif method == "prompts/list":
+            result = {"prompts": [_prompt_definition(spread) for spread in SPREADS]}
+        elif method == "prompts/get":
+            result = _handle_prompts_get(message.get("params"))
         else:
             raise _RpcError(METHOD_NOT_FOUND, f"Method not found: {method}")
         return _rpc_result(req_id, result)
