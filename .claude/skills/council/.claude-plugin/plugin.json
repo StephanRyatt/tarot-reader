@@ -1,0 +1,18 @@
+{
+  "name": "council",
+  "version": "0.4.0",
+  "description": "Think it through before you act. decision-council: stress-test a costly decision before you commit. best-of-n: compare n approaches to a problem, then build the best. risk-evaluation: see what could go wrong with one plan, how likely, how bad. ask-specialist: get an independent, deep answer to one hard question.",
+  "author": {
+    "name": "Stephan Ryatt"
+  },
+  "repository": "https://github.com/StephanRyatt/agent-charter",
+  "license": "MIT",
+  "keywords": [
+    "decisions",
+    "council",
+    "best-of-n",
+    "risk",
+    "reasoning",
+    "agents"
+  ]
+}

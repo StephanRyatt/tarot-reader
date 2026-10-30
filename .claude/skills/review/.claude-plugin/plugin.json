@@ -1,0 +1,16 @@
+{
+  "name": "review",
+  "version": "0.2.2",
+  "description": "Independent review of finished work. fresh-eyes: get an independent check that finished work is correct (code against its spec, a plan, a decision, a document or filing), judged from its governing sources, with findings fixed or reported.",
+  "author": {
+    "name": "Stephan Ryatt"
+  },
+  "repository": "https://github.com/StephanRyatt/agent-charter",
+  "license": "MIT",
+  "keywords": [
+    "review",
+    "fresh-context",
+    "quality",
+    "agents"
+  ]
+}

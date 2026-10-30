@@ -1,0 +1,8 @@
+{
+  "source": "https://github.com/StephanRyatt/agent-charter",
+  "note": "Written by agent-charter's sync. Edit the plugins in agent-charter, not here.",
+  "plugins": [
+    "council",
+    "review"
+  ]
+}
