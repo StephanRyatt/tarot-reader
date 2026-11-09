@@ -1,5 +1,6 @@
 """MCP server: handle_http() checks in order, JSON-RPC dispatch, and the socket adapter."""
 
+import base64
 import http.client
 import json
 import random
@@ -13,7 +14,9 @@ from api.mcp import (
     INPUT_SCHEMA,
     MAX_BODY_BYTES,
     SERVER_INSTRUCTIONS,
+    SERVER_VERSION,
     SPREADS,
+    TOOL_DEFINITION,
     TOOL_NAME,
     handle_http,
 )
@@ -421,6 +424,31 @@ def test_foreign_origin_is_forbidden(origin, method):
     assert payload["error"]["message"] == "Forbidden origin"
 
 
+@pytest.mark.parametrize(
+    "origin",
+    [
+        "https://chatgpt.com",
+        "https://chat.openai.com",
+        "null",
+        "capacitor://localhost",
+        "https://abc.web-sandbox.oaiusercontent.com",
+    ],
+)
+@pytest.mark.parametrize(("method", "status"), [("POST", 200), ("OPTIONS", 204)])
+def test_public_server_allows_any_origin(monkeypatch, origin, method, status):
+    """A public server trusts nothing about the caller, so there is nothing to rebind to.
+
+    ChatGPT's apps and web views send origins like these; a 403 here broke the iOS app.
+    """
+    monkeypatch.setenv("TAROT_MCP_PUBLIC", "1")
+    assert call(rpc("ping"), headers={"Origin": origin}, method=method).status == status
+
+
+def test_keyed_server_still_checks_origin_when_public_flag_is_off(monkeypatch):
+    monkeypatch.setenv("TAROT_MCP_PUBLIC", "0")
+    assert call(rpc("ping"), headers={"Origin": "https://chatgpt.com"}).status == 403
+
+
 def test_origin_check_runs_before_auth(monkeypatch):
     monkeypatch.setenv("TAROT_API_KEY", "secret")
     assert call(rpc("ping"), headers={"Origin": "https://attacker.example"}).status == 403
@@ -445,11 +473,16 @@ def test_supported_protocol_version_header_is_accepted():
 
 
 def test_unsupported_protocol_version_header_returns_400():
+    """The 2026-07-28 UnsupportedProtocolVersionError, so any client can pick a version."""
     resp = call(rpc("ping", req_id=9), headers={"MCP-Protocol-Version": "1999-01-01"})
     assert resp.status == 400
     payload = decode(resp)
     assert payload["id"] == 9
-    assert payload["error"]["code"] == -32600
+    assert payload["error"]["code"] == -32022
+    assert payload["error"]["data"] == {
+        "supported": ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"],
+        "requested": "1999-01-01",
+    }
 
 
 def test_initialize_ignores_protocol_version_header():
@@ -467,6 +500,154 @@ def test_input_schema_limits_match_engine():
     assert positions["maxItems"] == MAX_POSITIONS
     assert positions["items"]["maxLength"] == MAX_POSITION_LENGTH
     assert INPUT_SCHEMA["properties"]["label"]["maxLength"] == MAX_LABEL_LENGTH
+
+
+# Modern era (2026-07-28): no initialize, the version travels with every request
+
+MODERN = "2026-07-28"
+
+
+def modern(method, params=None, req_id=1, headers=None, meta=True):
+    """A modern request: version, method and name in the headers and in the body."""
+    params = dict(params or {})
+    if meta:
+        params["_meta"] = {
+            "io.modelcontextprotocol/protocolVersion": MODERN,
+            "io.modelcontextprotocol/clientInfo": {"name": "test", "version": "0"},
+            "io.modelcontextprotocol/clientCapabilities": {},
+        }
+    h = {"MCP-Protocol-Version": MODERN, "Mcp-Method": method}
+    if "name" in params:
+        h["Mcp-Name"] = params["name"]
+    h.update(headers or {})
+    return rpc(method, params, req_id=req_id), {k: v for k, v in h.items() if v is not None}
+
+
+def modern_call(method, params=None, rng=None, **kwargs):
+    body, headers = modern(method, params, **kwargs)
+    return call(body, headers=headers, rng=rng)
+
+
+SERVER_INFO = {"name": "tarot-reader", "title": "Tarot Reader", "version": SERVER_VERSION}
+
+
+def test_modern_server_discover():
+    resp = modern_call("server/discover")
+    assert resp.status == 200
+    result = decode(resp)["result"]
+    assert result["resultType"] == "complete"
+    assert result["supportedVersions"][:2] == ["2026-07-28", "2025-11-25"]
+    assert result["capabilities"] == {"tools": {}, "prompts": {}}
+    assert result["instructions"] == SERVER_INSTRUCTIONS
+    assert result["_meta"]["io.modelcontextprotocol/serverInfo"] == SERVER_INFO
+    assert result["ttlMs"] > 0
+    assert result["cacheScope"] == "public"
+
+
+def test_modern_tools_list_is_cacheable():
+    result = decode(modern_call("tools/list"))["result"]
+    assert result["tools"] == [TOOL_DEFINITION]
+    assert result["resultType"] == "complete"
+    assert result["ttlMs"] > 0
+    assert result["cacheScope"] == "public"
+    assert result["_meta"]["io.modelcontextprotocol/serverInfo"] == SERVER_INFO
+
+
+def test_modern_tools_call_matches_legacy_result():
+    params = {"name": TOOL_NAME, "arguments": {"positions": ["Past", "Present"], "label": "L"}}
+    legacy = decode(call(rpc("tools/call", params), rng=random.Random(3)))["result"]
+    result = decode(modern_call("tools/call", params, rng=random.Random(3)))["result"]
+    assert result["resultType"] == "complete"
+    assert "ttlMs" not in result
+    assert result["_meta"]["io.modelcontextprotocol/serverInfo"] == SERVER_INFO
+    for key in ("content", "structuredContent", "isError"):
+        assert result[key] == legacy[key]
+
+
+def test_modern_tools_call_accepts_base64_name_header():
+    params = {"name": TOOL_NAME, "arguments": {"positions": ["Past"]}}
+    encoded = "=?base64?" + base64.b64encode(TOOL_NAME.encode()).decode() + "?="
+    resp = modern_call("tools/call", params, headers={"Mcp-Name": encoded})
+    assert resp.status == 200
+    assert decode(resp)["result"]["isError"] is False
+
+
+def test_modern_prompts():
+    listed = decode(modern_call("prompts/list"))["result"]
+    assert [p["name"] for p in listed["prompts"]] == [s.slug for s in SPREADS]
+    assert listed["cacheScope"] == "public"
+    got = decode(modern_call("prompts/get", {"name": "daily-alignment"}))["result"]
+    assert got["resultType"] == "complete"
+    assert "Daily Alignment" in got["messages"][0]["content"]["text"]
+
+
+def test_legacy_results_carry_no_modern_fields():
+    for method in ("tools/list", "prompts/list"):
+        result = decode(call(rpc(method), headers={"MCP-Protocol-Version": "2025-11-25"}))
+        assert not {"resultType", "ttlMs", "cacheScope", "_meta"} & set(result["result"])
+
+
+@pytest.mark.parametrize(
+    ("method", "params", "headers", "meta"),
+    [
+        ("tools/list", None, {"Mcp-Method": None}, True),
+        ("tools/list", None, {"Mcp-Method": "prompts/list"}, True),
+        ("tools/list", None, {}, False),
+        ("tools/call", {"name": TOOL_NAME}, {"Mcp-Name": None}, True),
+        ("tools/call", {"name": TOOL_NAME}, {"Mcp-Name": "other_tool"}, True),
+        ("tools/call", {"name": TOOL_NAME}, {"Mcp-Name": "=?base64?not base64!?="}, True),
+        ("tools/call", {"name": TOOL_NAME}, {"Mcp-Name": "=?base64?\xe9?="}, True),
+        ("tools/call", {"name": TOOL_NAME}, {"Mcp-Name": "=?base64?/w==?="}, True),
+        ("prompts/get", {"name": "decision"}, {"Mcp-Name": "celtic-cross"}, True),
+    ],
+)
+def test_modern_header_mismatch_returns_400(method, params, headers, meta):
+    body, h = modern(method, params, req_id=7, headers=headers, meta=meta)
+    resp = call(body, headers=h)
+    assert resp.status == 400
+    payload = decode(resp)
+    assert payload["id"] == 7
+    assert payload["error"]["code"] == -32020
+
+
+def test_modern_meta_version_must_match_header():
+    body, headers = modern("tools/list")
+    message = json.loads(body)
+    message["params"]["_meta"]["io.modelcontextprotocol/protocolVersion"] = "2025-11-25"
+    resp = call(json.dumps(message), headers=headers)
+    assert resp.status == 400
+    assert decode(resp)["error"]["code"] == -32020
+
+
+@pytest.mark.parametrize("method", ["ping", "resources/list", "logging/setLevel"])
+def test_modern_unknown_method_returns_404(method):
+    resp = modern_call(method, req_id=4)
+    assert resp.status == 404
+    payload = decode(resp)
+    assert payload["id"] == 4
+    assert payload["error"]["code"] == -32601
+
+
+def test_modern_notification_is_accepted():
+    body = json.dumps({"jsonrpc": "2.0", "method": "notifications/cancelled"})
+    resp = call(body, headers={"MCP-Protocol-Version": MODERN})
+    assert resp.status == 202
+
+
+def test_initialize_with_modern_header_selects_legacy():
+    """A dual-era client that falls back sends initialize; it must still work."""
+    resp = call(
+        rpc("initialize", {"protocolVersion": "2025-11-25"}),
+        headers={"MCP-Protocol-Version": MODERN},
+    )
+    assert resp.status == 200
+    assert decode(resp)["result"]["protocolVersion"] == "2025-11-25"
+
+
+@pytest.mark.parametrize("requested", ["2026-07-28", "2099-01-01"])
+def test_initialize_never_negotiates_a_modern_version(requested):
+    resp = call(rpc("initialize", {"protocolVersion": requested}))
+    assert decode(resp)["result"]["protocolVersion"] == "2025-11-25"
 
 
 # Socket adapter (serve)
@@ -489,6 +670,16 @@ def test_socket_tools_call(server):
     resp = server.request("POST", headers=JSON, body=body)
     assert resp.status == 200
     assert len(json.loads(resp.body)["result"]["structuredContent"]["draws"]) == 3
+
+
+def test_socket_modern_tools_call(server):
+    """End to end over a socket, as a 2026-07-28 client would call it."""
+    body, headers = modern("tools/call", {"name": TOOL_NAME, "arguments": {"positions": ["Now"]}})
+    resp = server.request("POST", headers={**JSON, **headers}, body=body)
+    assert resp.status == 200
+    result = json.loads(resp.body)["result"]
+    assert result["resultType"] == "complete"
+    assert list(result["structuredContent"]["draws"]) == ["Now"]
 
 
 def test_socket_options_preflight(server):

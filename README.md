@@ -69,8 +69,9 @@ flowchart LR
   cards come out reversed: a test checks the rate stays between 20% and 32% over 7,800 seeded draws, and a chi-square
   test checks that card frequencies are consistent with a uniform draw.
 * **Stateless MCP over Streamable HTTP.** Each request stands alone, with no sessions or streams, which suits a
-  serverless function. The handler runs a fixed, numbered sequence of checks, including the spec's `Origin` and
-  `MCP-Protocol-Version` rules, before routing JSON-RPC.
+  serverless function. It speaks both MCP eras: the `initialize` handshake up to 2025-11-25 and the per-request
+  2026-07-28 protocol. The handler runs a fixed, numbered sequence of checks, including the spec's `Origin`,
+  `MCP-Protocol-Version` and header rules, before routing JSON-RPC.
 * **The tool's wording is part of the product.** The server instructions, tool description and the plugin skill
   ([`SKILL.md`](plugin/skills/tarot-reading/SKILL.md)) all tell the model never to invent cards, to draw the spread
   once per reading, and to add a clarifier only with the user's consent.
@@ -91,6 +92,7 @@ Full request and response details are in [docs/API.md](docs/API.md).
 | Tool metadata treated as product, tested | The model's behaviour depends on wording held in three places | [0004](docs/decisions/0004-tool-metadata-is-product.md) |
 | Freeze, then retire, the REST/GPT path | Custom GPTs retire on 11 Dec 2026 and Actions don't migrate | [0005](docs/decisions/0005-sunset-rest-endpoint.md) |
 | A counselor that leans, one clarifier on request | Hedged readings gave no decision support; consent keeps extra draws honest | [0006](docs/decisions/0006-counselor-skill.md) |
+| Both MCP eras; any Origin on the public server | ChatGPT's apps can send an `Origin`, and 2026-07-28 clients skip `initialize` | [0008](docs/decisions/0008-dual-era-mcp-and-open-origins.md) |
 
 ---
 

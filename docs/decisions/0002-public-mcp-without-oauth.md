@@ -17,7 +17,8 @@ to the user.
   has none.
 * Abuse is bounded at the edge, not in code: a Vercel Firewall rule allows 60 requests per minute per IP and
   answers 429 above that. The free plan's hard usage cap is the backstop, so the worst case is downtime, not a bill.
-* The `Origin` check still applies, so a public server can't be used for DNS rebinding from a browser.
+* The `Origin` check does not apply to the public server: there is nothing behind it for DNS rebinding to reach,
+  and the check blocked ChatGPT's apps (amended by [0008](0008-dual-era-mcp-and-open-origins.md)).
 
 ## Consequences
 

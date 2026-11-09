@@ -57,8 +57,20 @@ Rules:
 
 * **Endpoint:** `POST https://<host>/mcp` (also `POST https://<host>/api/mcp`)
 * **Transport:** stateless Streamable HTTP, JSON-response mode (`Content-Type: application/json`)
-* **Supported methods:** `initialize`, `ping`, `tools/list`, `tools/call`, `prompts/list`, `prompts/get`
-* **Protocol version:** default `2025-11-25`; echo `2025-06-18`, `2025-03-26`, or `2024-11-05` if the client asks for one of those; anything else falls back to `2025-11-25`
+* **Protocol versions:** dual-era ([ADR 0008](decisions/0008-dual-era-mcp-and-open-origins.md)).
+  * **Legacy (`initialize` handshake):** `initialize`, `ping`, `tools/list`, `tools/call`, `prompts/list`,
+    `prompts/get`. `initialize` settles on `2025-11-25` by default and echoes `2025-06-18`, `2025-03-26` or
+    `2024-11-05` if the client asks for one of those; anything else, including `2026-07-28`, falls back to
+    `2025-11-25`. `initialize` always uses legacy semantics, whatever its `MCP-Protocol-Version` header says.
+  * **Modern (`2026-07-28`, no handshake):** selected by an `MCP-Protocol-Version: 2026-07-28` header on any request
+    other than `initialize`. Serves `server/discover`, `tools/list`, `tools/call`, `prompts/list` and `prompts/get`.
+    `Mcp-Method`, `Mcp-Name` (for `tools/call` and `prompts/get`; the `=?base64?…?=` form is decoded) and
+    `params._meta["io.modelcontextprotocol/protocolVersion"]` must match the body. Results add
+    `resultType: "complete"` and `_meta["io.modelcontextprotocol/serverInfo"]`; `server/discover`, `tools/list` and
+    `prompts/list` also add `ttlMs: 3600000` and `cacheScope: "public"`. `server/discover` returns
+    `supportedVersions`, `capabilities` and `instructions`.
+  * **Unknown version** in the header: `400` with `-32022` and
+    `data: {"supported": [...every version above...], "requested": "<header>"}`.
 * **Tool:** `draw_tarot_spread` — same input as the REST API (`positions`, optional `label`) and the same `draws` / `meta` output as `structuredContent`, plus a readable `content` text block in position order
 * **Prompts:** one per named spread (`card-of-the-day`, `daily-alignment`, `daily-focus`, `weekly-path`,
   `weekly-evolution`, `past-present-future`, `decision`, `celtic-cross`). They take no arguments, so nothing about the
@@ -72,9 +84,11 @@ Rules:
 * `200` — JSON-RPC request result or protocol error
 * `202` — notification or client response (empty body)
 * `204` — CORS preflight (`OPTIONS`)
-* `400` — parse error, batch, invalid request, or an unsupported `MCP-Protocol-Version` header
+* `400` — parse error, batch, invalid request, an unsupported `MCP-Protocol-Version` header (`-32022`), or a
+  modern request whose headers don't match its body (`-32020`)
 * `401` — Unauthorized (JSON-RPC body, no `WWW-Authenticate`)
-* `403` — `Origin` header from a browser origin that is not allowed (see below)
+* `403` — `Origin` header from a browser origin that is not allowed (see below; never on a public server)
+* `404` — a modern (`2026-07-28`) request for a method this server doesn't serve (`-32601`)
 * `405` — `GET` / `DELETE` (`Allow: POST, OPTIONS`)
 * `413` — request body larger than 64 KiB
 * `500` — unexpected internal error
@@ -106,7 +120,9 @@ OAuth is not implemented.
 
 ### Browser origins (`/mcp` only)
 
-The MCP spec requires servers to check the `Origin` header to block DNS-rebinding attacks. `/mcp` allows:
+The MCP spec requires servers to check the `Origin` header to block DNS-rebinding attacks. When `/mcp` is public
+(`TAROT_MCP_PUBLIC=1`), every `Origin` is allowed: nothing behind a public server depends on where the caller sits,
+and ChatGPT's apps can send origins such as `https://chatgpt.com` or `null` (ADR 0008). Otherwise `/mcp` allows:
 
 * requests with no `Origin` (server-side clients such as ChatGPT and Claude)
 * local pages on `localhost`, `127.0.0.1` or `[::1]` (MCP Inspector)

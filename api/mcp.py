@@ -3,8 +3,13 @@
 `handle_http()` is the transport-agnostic core: plain values in, an HttpResponse out.
 `serve()` adapts a BaseHTTPRequestHandler to it, and `handler` is the class Vercel
 serves for this file.
+
+The server is dual-era (ADR 0008). Legacy clients open with `initialize` and speak
+2025-11-25 or earlier. Modern clients (2026-07-28) skip the handshake and send the version
+in the `MCP-Protocol-Version` header and in each request's `_meta`.
 """
 
+import base64
 import json
 import os
 import random
@@ -34,9 +39,12 @@ except ImportError:  # pragma: no cover - exercised in a subprocess by the tests
 
 SERVER_NAME = "tarot-reader"
 SERVER_TITLE = "Tarot Reader"
-SERVER_VERSION = "1.1.0"
-LATEST_PROTOCOL_VERSION = "2025-11-25"
-SUPPORTED_PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")
+SERVER_VERSION = "1.2.0"
+# Modern versions carry the version on every request; legacy ones negotiate it in initialize.
+MODERN_PROTOCOL_VERSIONS = ("2026-07-28",)
+LEGACY_PROTOCOL_VERSIONS = ("2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05")
+SUPPORTED_PROTOCOL_VERSIONS = MODERN_PROTOCOL_VERSIONS + LEGACY_PROTOCOL_VERSIONS
+LATEST_LEGACY_VERSION = LEGACY_PROTOCOL_VERSIONS[0]
 MAX_BODY_BYTES = 64 * 1024
 TOOL_NAME = "draw_tarot_spread"
 
@@ -49,6 +57,19 @@ PARSE_ERROR, INVALID_REQUEST, METHOD_NOT_FOUND, INVALID_PARAMS, INTERNAL_ERROR =
 )
 # Implementation-defined JSON-RPC server error, used for HTTP-level rejections.
 SERVER_ERROR = -32000
+# Errors the 2026-07-28 spec defines. A dual-era client reads them as "this server is modern".
+HEADER_MISMATCH, UNSUPPORTED_PROTOCOL_VERSION = -32020, -32022
+
+# Modern-era request metadata (2026-07-28).
+META_PROTOCOL_VERSION = "io.modelcontextprotocol/protocolVersion"
+META_SERVER_INFO = "io.modelcontextprotocol/serverInfo"
+# Methods whose Mcp-Name header mirrors a body field.
+NAMED_METHODS = {"tools/call": "name", "prompts/get": "name", "resources/read": "uri"}
+MODERN_METHODS = frozenset(
+    {"server/discover", "tools/list", "tools/call", "prompts/list", "prompts/get"}
+)
+# Tool and prompt lists change only on deploy; clients and shared caches may keep them an hour.
+LIST_TTL_MS = 60 * 60 * 1000
 
 PUBLIC_ENV_VAR = "TAROT_MCP_PUBLIC"
 ALLOWED_ORIGINS_ENV_VAR = "TAROT_MCP_ALLOWED_ORIGINS"
@@ -314,7 +335,7 @@ CORS_HEADERS = {
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE",
     "Access-Control-Allow-Headers": (
         "Content-Type, Authorization, Accept, Mcp-Protocol-Version, "
-        "Mcp-Session-Id, Last-Event-ID, Mcp-Method, Mcp-Name"
+        "Mcp-Session-Id, Last-Event-ID, Mcp-Method, Mcp-Name, traceparent, tracestate, baggage"
     ),
     "Access-Control-Expose-Headers": "Mcp-Session-Id, Mcp-Protocol-Version",
     "Access-Control-Max-Age": "86400",
@@ -367,11 +388,15 @@ def _echo_id(message: dict[str, Any]) -> Any:
 def _is_allowed_origin(origin: str | None) -> bool:
     """Guard against DNS rebinding, as the MCP transport spec requires.
 
-    Requests without an Origin (server-side clients such as ChatGPT and Claude) and
-    from local pages (MCP Inspector) are allowed. Other browser origins must be listed
-    in TAROT_MCP_ALLOWED_ORIGINS (comma-separated), or that variable set to "*".
+    DNS rebinding lets a web page reach a server that trusts its network position, such
+    as one on localhost. A public server (TAROT_MCP_PUBLIC=1) trusts nothing about the
+    caller, so every origin is valid there; ChatGPT's apps and web views can send origins
+    such as https://chatgpt.com or "null" (ADR 0008). Otherwise, requests without an Origin
+    (server-side clients) and from local pages (MCP Inspector) are allowed, and other
+    browser origins must be listed in TAROT_MCP_ALLOWED_ORIGINS (comma-separated), or that
+    variable set to "*".
     """
-    if not origin:
+    if not origin or os.environ.get(PUBLIC_ENV_VAR) == "1":
         return True
     configured = {
         entry.strip().rstrip("/")
@@ -394,9 +419,49 @@ def format_spread_text(payload: dict[str, Any]) -> str:
 
 
 def _negotiate_version(requested: Any) -> str:
-    if isinstance(requested, str) and requested in SUPPORTED_PROTOCOL_VERSIONS:
+    """The legacy version an initialize request settles on."""
+    if isinstance(requested, str) and requested in LEGACY_PROTOCOL_VERSIONS:
         return requested
-    return LATEST_PROTOCOL_VERSION
+    return LATEST_LEGACY_VERSION
+
+
+def _decode_header_value(value: str) -> str | None:
+    """Undo the spec's `=?base64?...?=` sentinel; None when the encoding is broken."""
+    if not (value.startswith("=?base64?") and value.endswith("?=")):
+        return value
+    try:
+        return base64.b64decode(value[9:-2], validate=True).decode("utf-8")
+    except ValueError:  # binascii.Error, non-ASCII input, or bytes that aren't UTF-8
+        return None
+
+
+def _header_mismatch(message: dict[str, Any], headers: dict[str, str]) -> str | None:
+    """Why a modern request's headers disagree with its body, or None when they agree."""
+    method = message["method"]
+    if headers.get("mcp-method") != method:
+        return "Mcp-Method header is missing or does not match the body"
+    params = message.get("params")
+    params = params if isinstance(params, dict) else {}
+    meta = params.get("_meta")
+    meta = meta if isinstance(meta, dict) else {}
+    if meta.get(META_PROTOCOL_VERSION) != headers.get("mcp-protocol-version"):
+        return f"MCP-Protocol-Version header does not match _meta {META_PROTOCOL_VERSION}"
+    field = NAMED_METHODS.get(method)
+    if field is not None:
+        raw = headers.get("mcp-name")
+        if raw is None or _decode_header_value(raw) != params.get(field):
+            return f"Mcp-Name header is missing or does not match params.{field}"
+    return None
+
+
+def _modern_result(method: str, result: dict[str, Any]) -> dict[str, Any]:
+    """Add the fields a 2026-07-28 result carries; legacy results stay as they were."""
+    server_info = {"name": SERVER_NAME, "title": SERVER_TITLE, "version": SERVER_VERSION}
+    extra: dict[str, Any] = {"resultType": "complete"}
+    if method in ("server/discover", "tools/list", "prompts/list"):
+        extra.update(ttlMs=LIST_TTL_MS, cacheScope="public")
+    meta = {**(result.get("_meta") or {}), META_SERVER_INFO: server_info}
+    return {**result, **extra, "_meta": meta}
 
 
 def _tool_error_result(text: str) -> dict[str, Any]:
@@ -444,16 +509,28 @@ def _handle_prompts_get(params: Any) -> dict[str, Any]:
     }
 
 
-def dispatch(message: dict[str, Any], *, rng: random.Random | None = None) -> dict[str, Any]:
-    """Route one validated JSON-RPC request (it has an id) to its result or error."""
+def dispatch(
+    message: dict[str, Any], *, rng: random.Random | None = None, modern: bool = False
+) -> dict[str, Any]:
+    """Route one validated JSON-RPC request (it has an id) to its result or error.
+
+    `modern` serves a 2026-07-28 request: it adds server/discover and the fields modern
+    results carry. Legacy results are unchanged, byte for byte.
+    """
     req_id = message["id"]
     method = message.get("method")
     try:
-        if method == "initialize":
+        if modern and method == "server/discover":
+            result: dict[str, Any] = {
+                "supportedVersions": list(SUPPORTED_PROTOCOL_VERSIONS),
+                "capabilities": {"tools": {}, "prompts": {}},
+                "instructions": SERVER_INSTRUCTIONS,
+            }
+        elif method == "initialize":
             params = message.get("params") or {}
             if not isinstance(params, dict):
                 params = {}
-            result: dict[str, Any] = {
+            result = {
                 "protocolVersion": _negotiate_version(params.get("protocolVersion")),
                 "capabilities": {
                     "tools": {"listChanged": False},
@@ -478,7 +555,7 @@ def dispatch(message: dict[str, Any], *, rng: random.Random | None = None) -> di
             result = _handle_prompts_get(message.get("params"))
         else:
             raise _RpcError(METHOD_NOT_FOUND, f"Method not found: {method}")
-        return _rpc_result(req_id, result)
+        return _rpc_result(req_id, _modern_result(method, result) if modern else result)
     except _RpcError as e:
         return _rpc_error(req_id, e.code, e.message)
 
@@ -489,7 +566,8 @@ def handle_http(
     """Run one HTTP request through the MCP checks, in order. `headers` keys are lowercase."""
     verb = (method or "").upper()
 
-    # 1. Origin (DNS-rebinding guard; applies to every method, preflight included)
+    # 1. Origin (DNS-rebinding guard; applies to every method, preflight included; any
+    #    origin is valid on a public server)
     if not _is_allowed_origin(headers.get("origin")):
         return _json_response(403, _rpc_error(None, SERVER_ERROR, "Forbidden origin"))
 
@@ -536,25 +614,47 @@ def handle_http(
     if "id" in decoded and not _is_valid_id(decoded["id"]):
         return _json_response(400, _rpc_error(None, INVALID_REQUEST, "Invalid Request"))
 
-    # 10. MCP-Protocol-Version header, when sent after initialize, must be supported
+    # 10. MCP-Protocol-Version header picks the era. initialize always selects legacy
+    #     semantics, so its header is ignored; no header means a legacy client from before
+    #     2025-06-18. An unknown version gets the modern UnsupportedProtocolVersionError, which
+    #     lists every version this server speaks.
     version_header = headers.get("mcp-protocol-version")
+    modern = decoded["method"] != "initialize" and version_header in MODERN_PROTOCOL_VERSIONS
     if (
         decoded["method"] != "initialize"
         and version_header is not None
         and version_header not in SUPPORTED_PROTOCOL_VERSIONS
     ):
-        return _json_response(
-            400,
-            _rpc_error(_echo_id(decoded), INVALID_REQUEST, "Unsupported MCP-Protocol-Version"),
+        error = _rpc_error(
+            _echo_id(decoded), UNSUPPORTED_PROTOCOL_VERSION, "Unsupported protocol version"
         )
+        error["error"]["data"] = {
+            "supported": list(SUPPORTED_PROTOCOL_VERSIONS),
+            "requested": version_header,
+        }
+        return _json_response(400, error)
+
+    # 10a. Modern requests: Mcp-Method, Mcp-Name and _meta's version must match the body
+    if modern and "id" in decoded:
+        mismatch = _header_mismatch(decoded, headers)
+        if mismatch is not None:
+            return _json_response(
+                400, _rpc_error(_echo_id(decoded), HEADER_MISMATCH, f"Header mismatch: {mismatch}")
+            )
 
     # 11. Notification (no id): accepted, no body
     if "id" not in decoded:
         return _empty_response(202)
 
-    # 12. Dispatch
+    # 12. Dispatch (a modern method this server lacks is a 404, so a dual-era client can
+    #     tell it from a legacy server's 404)
+    if modern and decoded["method"] not in MODERN_METHODS:
+        return _json_response(
+            404,
+            _rpc_error(decoded["id"], METHOD_NOT_FOUND, f"Method not found: {decoded['method']}"),
+        )
     try:
-        payload = dispatch(decoded, rng=rng)
+        payload = dispatch(decoded, rng=rng, modern=modern)
     except Exception as e:
         print(f"{type(e).__name__}: {e}", file=sys.stderr)
         return _json_response(500, _rpc_error(decoded["id"], INTERNAL_ERROR, "Internal error"))

@@ -8,7 +8,7 @@ The engine guarantees a fair draw, but the user only benefits if the model actua
 and then interprets the returned cards rather than its own. That behaviour is shaped entirely by text the model
 reads in three places:
 
-* `SERVER_INSTRUCTIONS`, returned from `initialize`
+* `SERVER_INSTRUCTIONS`, returned from `initialize` and `server/discover`
 * the `draw_tarot_spread` tool description and schemas
 * the plugin skill, `plugin/skills/tarot-reading/SKILL.md`
 
