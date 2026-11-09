@@ -50,7 +50,10 @@ Vercel's Python runtime changes how it installs when one exists, so tool config 
   `GET` (405). `ValueError` and every other exception become a 400.
 - **MCP** (`api/mcp.py`): `handle_http(method, headers, body)` is the transport-agnostic core. It takes plain values and
   returns an `HttpResponse`, applying a fixed numbered sequence of checks (Origin, OPTIONS, non-POST, auth, size,
-  parse, batch, envelope, id, `MCP-Protocol-Version` header, notification, dispatch). Keep that order when editing,
+  parse, batch, envelope, id, `MCP-Protocol-Version` header and era, modern header match, notification, dispatch).
+  The server is dual-era (ADR 0008): `initialize` and legacy requests get 2025-11-25-era results, unchanged byte for
+  byte; a `2026-07-28` header selects modern handling (`server/discover`, header checks, `resultType`, cache
+  fields). Keep that order when editing,
   because `tests/test_mcp.py` pins the status codes. `dispatch()` does the JSON-RPC method routing, and `serve()` adapts a `BaseHTTPRequestHandler` to `handle_http`
   (including chunked bodies and the 64 KiB cap). The `try/except ImportError` at the top lets the module import as
   `api.tarot` or as a bare `tarot`.
@@ -70,7 +73,8 @@ Vercel's Python runtime changes how it installs when one exists, so tool config 
   REST endpoint. `tests/test_http.py` pins all of it. Error messages must never include exception text.
 - Auth is shared via `is_authorized()` in `api/tarot.py`. `TAROT_API_KEY` set means a Bearer token is required.
   `TAROT_MCP_PUBLIC=1` opts only `/mcp` out; `/api/tarot` stays keyed (`test_mcp_public_does_not_open_tarot_api`).
-  `.env.local` is gitignored. `TAROT_MCP_ALLOWED_ORIGINS` widens the `/mcp` Origin allowlist (default: no Origin
+  `.env.local` is gitignored. With `TAROT_MCP_PUBLIC=1` any Origin is allowed on `/mcp` (ADR 0008).
+  Otherwise `TAROT_MCP_ALLOWED_ORIGINS` widens the `/mcp` Origin allowlist (default: no Origin
   or localhost only).
 - Limits (`MAX_POSITIONS`, `MAX_POSITION_LENGTH`, `MAX_LABEL_LENGTH`) live in `api/tarot.py`; the MCP input schema
   reads them. `tests/test_consistency.py` checks the skill, instructions and `docs/API.md` still agree.
